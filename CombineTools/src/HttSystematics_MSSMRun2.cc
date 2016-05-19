@@ -221,20 +221,80 @@ void AddMSSMRun2Systematics(CombineHarvester & cb, int control_region = 0) {
   // ---------------------
   cb.cp().process(JoinStr({signal, {"ZTT"}})).channel({"em"}).AddSyst(cb,
     "CMS_scale_e_$CHANNEL_$ERA", "shape", SystMap<>::init(1.00));
-
+  
   // Recoil corrections
   // ------------------
   // These should not be applied to the W in all control regions becasuse we should
   // treat it as an uncertainty on the low/high mT factor.
-  // For now we also avoid applying this to any of the high-mT control regions
-  // as the exact (anti-)correlation with low mT needs to be established
-  cb.cp().AddSyst(cb,
-    "CMS_htt_boson_scale_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
-    ({"et", "mt", "em", "tt"}, {8, 9, 11, 14}, JoinStr({signal, {"ZTT", "W"}}), 1.02));
-
+  
   cb.cp().AddSyst(cb,
     "CMS_htt_boson_reso_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
-    ({"et", "mt", "em", "tt"}, {8, 9, 11, 14}, JoinStr({signal, {"ZTT", "W"}}), 1.02));
+    ({"mt"}, {8}, {"W"}, 0.955632, 1.0468)
+    ({"mt"}, {9}, {"W"}, 0.922229, 1.18887)
+    ({"mt"}, {11}, {"W"}, 0.959403, 1.04032)
+    ({"mt"}, {14}, {"W"}, 0.892948, 1.14739)
+    ({"mt"}, {14}, {"ZTT"}, 0.971353, 0.975085)
+    ({"et"}, {8}, {"W"}, 0.942373, 1.05993)
+    ({"et"}, {9}, {"W"}, 0.874493, 1.14737)
+    ({"et"}, {11}, {"W"}, 0.943195, 1.07009)
+    ({"et"}, {14}, {"W"}, 0.839925, 1.04066)
+    );
+  //ADD ZTT in other CRs. Also add signal
+  
+  cb.cp().AddSyst(cb,
+    "CMS_htt_boson_scale_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
+    ({"mt"}, {9}, {"W"}, 1.03203, 0.977643)
+    ({"mt"}, {14}, {"W"}, 1.07983, 1.00526)
+    ({"mt"}, {14}, {"ZTT"}, 0.971353, 0.975085)
+    ({"et"}, {9}, {"W"}, 1.00601, 0.9648)
+    ({"et"}, {14}, {"W"}, 1.01632, 0.959988)
+    ({"em"}, {9}, {"W"}, 0.967676, 1.00153)
+    );
+  //ADD ZTT in other CRs. Also add signal
+
+  cb.cp().AddSyst(cb,
+    "CMS_htt_ewkTop_scale_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
+    ({"mt"}, {9}, {"VV"}, 0.9786, 0.994319)
+    ({"mt"}, {14}, {"TT"}, 0.987655, 1.01175)
+    ({"mt"}, {14}, {"VV"}, 1.02297, 1.07069)
+    ({"et"}, {9}, {"VV"}, 1.0338, 1.00165)
+    ({"et"}, {14}, {"VV"}, 0.966223, 1.02659)
+    );
+  
+  cb.cp().AddSyst(cb,
+    "CMS_htt_ewkTop_reso_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
+    ({"mt"}, {8}, {"TT"}, 0.985187, 1.01879)
+    ({"mt"}, {8}, {"VV"}, 0.981981, 1.01436)
+    ({"mt"}, {9}, {"TT"}, 0.972352, 1.0223)
+    ({"mt"}, {9}, {"VV"}, 0.955294, 1.00637)
+    ({"mt"}, {11}, {"TT"}, 0.983314, 1.0245)
+    ({"mt"}, {11}, {"VV"}, 0.979804, 1.03692)
+    ({"mt"}, {12}, {"TT"}, 1.01076, 0.992128)
+    ({"mt"}, {12}, {"VV"}, 1.01264, 0.985382)
+    ({"mt"}, {14}, {"TT"}, 0.977644, 1.01915)
+    ({"mt"}, {14}, {"VV"}, 0.992733, 1.04488)
+    );
+  //Add rest of channels
+
+
+  // top-quark pT reweighting
+  // ------------------------
+  cb.cp().process({"TT"}).AddSyst(cb,
+    "CMS_htt_ttbarShape_$ERA", "shape", SystMap<>::init(1.00));
+
+  // Cross-sections and lumi
+  // -----------------------
+  cb.cp().process(JoinStr({signal, {"TT", "VV", "ZL", "ZJ", "ZTT", "ZLL"}})).AddSyst(cb,
+    "lumi_13TeV", "lnN", SystMap<>::init(1.027));
+
+  cb.cp().process({"ZTT", "ZL", "ZJ", "ZLL"}).AddSyst(cb,
+    "CMS_htt_zjXsec_13TeV", "lnN", SystMap<>::init(1.04));
+
+  // Diboson and ttbar Normalisation - fully correlated
+  cb.cp().process({"VV"}).AddSyst(cb,
+    "CMS_htt_vvXsec_13TeV", "lnN", SystMap<>::init(1.10));
+
+  cb.cp().process({"TT"}).AddSyst(cb,
 
   cb.cp().AddSyst(cb,
     "CMS_htt_ewkTop_scale_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
@@ -242,7 +302,7 @@ void AddMSSMRun2Systematics(CombineHarvester & cb, int control_region = 0) {
 
   cb.cp().AddSyst(cb,
     "CMS_htt_ewkTop_reso_met_$ERA", "lnN", SystMap<channel, bin_id, process>::init
-    ({"et", "mt", "em", "tt"}, {8, 9, 11, 14}, {"TT", "VV"}, 1.02));
+    ({"et", "mt", "em", "tt"}, {8, 9, 11, 14}, {"TT", "VV"}, 1.02));*/
 
   // top-quark pT reweighting
   // ------------------------
@@ -405,33 +465,6 @@ void AddMSSMRun2Systematics(CombineHarvester & cb, int control_region = 0) {
         // Regex that matches, e.g. mt_nobtag or mt_nobtag_qcd_cr
         cb.cp().bin({bin+"(|_qcd_cr)$"}).process({"QCD"}).AddSyst(cb,
           "rate_QCD_lowmT_"+bin, "rateParam", SystMap<>::init(1.0));
-
-        // Regex that matches, e.g. mt_nobtag_wjets_cr or mt_nobtag_wjets_ss_cr
-        cb.cp().bin({bin+"_wjets(|_ss)_cr$"}).process({"QCD"}).AddSyst(cb,
-          "rate_QCD_highmT_"+bin, "rateParam", SystMap<>::init(1.0));
-
-        /////////////////
-        // Systematics //
-        /////////////////
-
-        // OS/SS W factor stat. uncertainty
-        // Should affect signal region and OS high mT
-        cb.cp().bin({bin+"(|_wjets_cr)$"}).process({"W"}).AddSyst(cb,
-          "CMS_htt_W_OS_SS_stat_"+bin+"_$ERA", "lnN", SystMap<channel, bin_id>::init
-          ({"mt"}, {8, 10}, 1.015)
-          ({"mt"}, {9, 13}, 1.100)
-          ({"et"}, {8, 10}, 1.015)
-          ({"et"}, {9, 13}, 1.110));
-
-        // OS/SS W factor syst. uncertainty
-        // Based of data/MC for OS/SS ratio in anti-tau iso high mT region
-        // Decorrelate between categories for now - but this should be studied
-        cb.cp().bin({bin+"(|_wjets_cr)$"}).process({"W"}).AddSyst(cb,
-          "CMS_htt_W_OS_SS_syst_"+bin+"_$ERA", "lnN", SystMap<channel, bin_id>::init
-          ({"mt"}, {8, 10}, 1.060)
-          ({"mt"}, {9, 13}, 1.110)
-          ({"et"}, {8, 10}, 1.100)
-          ({"et"}, {9, 13}, 1.140));
 
         // low/high mT W factor stat. uncertainty
         // Should affect signal region and SS low mT
