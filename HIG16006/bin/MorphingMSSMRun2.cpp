@@ -428,7 +428,8 @@ int main(int argc, char** argv) {
   cout << " done\n";
 
   //Switch JES over to lnN:
-  //cb.cp().syst_name({"CMS_scale_j_13TeV"}).ForEachSyst([](ch::Systematic *sys) { sys->set_type("lnN");});
+  cb.cp().syst_name({"CMS_scale_met_13TeV"}).ForEachSyst([](ch::Systematic *sys) { sys->set_type("lnN");});
+  cb.cp().syst_name({"CMS_scale_res_13TeV"}).ForEachSyst([](ch::Systematic *sys) { sys->set_type("lnN");});
 
   // This function modifies every entry to have a standardised bin name of
   // the form: {analysis}_{channel}_{bin_id}_{era}
