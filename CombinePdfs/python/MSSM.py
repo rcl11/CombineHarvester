@@ -84,6 +84,7 @@ class MSSMHiggsModel(PhysicsModel):
         # determine the correct normalisation scaling
         self.ERAS = ['7TeV', '8TeV', '13TeV', '14TeV']
         self.PROC_SETS = []
+        self.BKG_PROCS = set()
         self.SYST_DICT = defaultdict(list)
         self.NUISANCES = set()
         self.SMSignal  = "SM125" #SM signal
@@ -251,10 +252,15 @@ class MSSMHiggsModel(PhysicsModel):
         # RooFit will create them automatically from the x- and y-axis
         # ranges of the input histograms
         mA = ROOT.RooRealVar('mA', 'm_{A} [GeV]', 120.)
-        tanb = ROOT.RooRealVar('tanb', 'tan#beta', 20.)
+        tanb = ROOT.RooRealVar('tanb', 'tan#beta ', 20.)
         pars = [mA, tanb]
         doneMasses = False
-
+        
+        for bin in self.DC.bins:
+            for proc in self.DC.exp[bin].keys():
+                if not self.DC.isSignal[proc]:
+                    self.BKG_PROCS.add(proc)
+        
         for era, (file, version) in self.modelFiles.iteritems():
             hd = self.h_dict[version]
             f = ROOT.TFile(self.filePrefix + file)
@@ -389,6 +395,7 @@ class MSSMHiggsModel(PhysicsModel):
     def doParametersOfInterest(self):
         """Create POI and other parameters, and define the POI set."""
         self.modelBuilder.doVar("r[1,0,20]")
+        self.modelBuilder.doVar("lumi[1,0,200]")
 
         #MSSMvsSM
         self.modelBuilder.doVar("x[1,0,1]")
@@ -401,6 +408,7 @@ class MSSMHiggsModel(PhysicsModel):
         # We don't intend on actually floating these in any fits...
         self.modelBuilder.out.var('mA').setConstant(True)
         self.modelBuilder.out.var('tanb').setConstant(True)
+        self.modelBuilder.out.var('lumi').setConstant(True)
 
         # Build the intermediate terms for charged Higgs scaling
         for E in self.modelFiles:
@@ -416,13 +424,14 @@ class MSSMHiggsModel(PhysicsModel):
 
         for proc_set in self.PROC_SETS:
             for (P, D, E) in itertools.product(*proc_set):
-                # print (P, D, E)
                 if ((self.SMSignal not in D) and ("ww125" not in P) and ("tt125" not in P)): #altenative hypothesis if SMSignal not in process name
                     terms = ['xs_%s_%s' % (P, E), 'br_%s_%s'% (D, E)]
                     terms += ['r']
+                    terms += ['lumi']
                     terms += [self.sigNorms[1]]
                 else:
                     terms = [self.sigNorms[0]]
+                    terms += ['lumi']
                 # Now scan terms and add theory uncerts
                 extra = []
                 for term in terms:
@@ -431,6 +440,12 @@ class MSSMHiggsModel(PhysicsModel):
                 terms += extra
                 self.modelBuilder.factory_('prod::scaling_%s_%s_%s(%s)' % (P,D,E,','.join(terms)))
                 self.modelBuilder.out.function('scaling_%s_%s_%s' % (P,D,E)).Print('')
+        
+        for proc in self.BKG_PROCS:
+            terms = ['lumi']
+            self.modelBuilder.factory_('prod::scaling_%s(%s)' % (proc,','.join(terms)))
+            self.modelBuilder.out.function('scaling_%s' % proc).Print('')
+
 
 
     def getHiggsProdDecMode(self, bin, process):
@@ -450,6 +465,7 @@ class MSSMHiggsModel(PhysicsModel):
                 raise RuntimeError, 'Did not find a valid energy in bin string %s' % bin
         return (P, D, E)
 
+
     def getYieldScale(self,bin,process):
         if self.DC.isSignal[process]:
             (P, D, E) = self.getHiggsProdDecMode(bin, process)
@@ -457,7 +473,8 @@ class MSSMHiggsModel(PhysicsModel):
             print 'Scaling %s/%s as %s' % (bin, process, scaling)
             return scaling
         else:
-            return 1
+            scaling = 'scaling_%s' % (process)
+            return scaling
 
 
 MSSM = MSSMHiggsModel()
