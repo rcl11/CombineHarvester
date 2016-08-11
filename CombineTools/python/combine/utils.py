@@ -1,7 +1,7 @@
 import ROOT
 import re
 
-def split_vals(vals):
+def split_vals(vals, fmt_spec=None):
     """Converts a string '1:3|1,4,5' into a list [1, 2, 3, 4, 5]"""
     res = set()
     first = vals.split(',')
@@ -17,7 +17,9 @@ def split_vals(vals):
             if len(split_step) == 2:
                 ndigs = len(split_step[1])
             fmt = '%.' + str(ndigs) + 'f'
-            while x1 < float(second[1]) + 0.001:
+            if fmt_spec is not None:
+                fmt = fmt_spec
+            while x1 < float(second[1]) + 0.0001:
                 res.add(fmt % x1)
                 x1 += float(second[2])
     return sorted([x for x in res], key=lambda x: float(x))
@@ -99,6 +101,9 @@ def get_singles_results(file, scanned, columns):
         res[param] = {}
         for col in columns:
             allvals = [getattr(evt, col) for evt in t]
+            if len(allvals) < (1 + len(scanned)*2):
+                print 'File %s did not contain a sufficient number of entries, skipping' % file
+                return None
             res[param][col] = [
                 allvals[i * 2 + 1], allvals[0], allvals[i * 2 + 2]]
     return res

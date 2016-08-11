@@ -27,6 +27,7 @@ int main(int argc, char* argv[]) {
   unsigned samples  = 500;
   std::string freeze_arg = "";
   bool covariance   = false;
+  string data       = "data_obs";
 
   po::options_description help_config("Help");
   help_config.add_options()
@@ -37,6 +38,9 @@ int main(int argc, char* argv[]) {
     ("workspace,w",
       po::value<string>(&workspace)->required(),
       "The input workspace-containing file [REQUIRED]")
+    ("dataset",
+      po::value<string>(&data)->default_value(data),
+      "The input dataset name")
     ("datacard,d",
       po::value<string>(&datacard),
       "The input datacard, only used for rebinning")
@@ -104,7 +108,7 @@ int main(int argc, char* argv[]) {
   // Create CH instance and parse the workspace
   ch::CombineHarvester cmb;
   cmb.SetFlag("workspaces-use-clone", true);
-  ch::ParseCombineWorkspace(cmb, *ws, "ModelConfig", "data_obs", false);
+  ch::ParseCombineWorkspace(cmb, *ws, "ModelConfig", data, false);
 
   // Only evaluate in case parameters to freeze are provided
   if(! freeze_arg.empty())
@@ -206,12 +210,6 @@ int main(int argc, char* argv[]) {
       double err = cmb_bin.cp().backgrounds().GetUncertainty();
       cout << boost::format("%-25s %-10.5f\n") % bin %
                   (rate > 0. ? (err / rate) : 0.);
-      for (auto proc : cmb_bin.process_set()) {
-        double prate = cmb_bin.cp().process({proc}).GetRate();
-        double perr = cmb_bin.cp().process({proc}).GetUncertainty();
-        cout << boost::format("  %-23s %-10.5f\n") % proc %
-                    (prate > 0. ? (perr / prate) : 0.);
-      }
     }
   }
 
@@ -228,19 +226,11 @@ int main(int argc, char* argv[]) {
       cout << string(58, '-') << "\n";
       for (auto bin : bins) {
         ch::CombineHarvester cmb_bkgs = cmb.cp().bin({bin}).backgrounds();
-        ch::CombineHarvester cmb_bin = cmb.cp().bin({bin});
         double rate = cmb_bkgs.GetRate();
         double err = sampling ? cmb_bkgs.GetUncertainty(res, samples)
                               : cmb_bkgs.GetUncertainty();
         cout << boost::format("%-25s %-10.5f\n") % bin %
                     (rate > 0. ? (err / rate) : 0.);
-        for (auto proc : cmb_bin.process_set()) {
-          double prate = cmb_bin.cp().process({proc}).GetRate();
-          double perr =  sampling ? cmb_bin.cp().process({proc}).GetUncertainty(res, samples)
-                                  : cmb_bin.cp().process({proc}).GetUncertainty();
-          cout << boost::format("  %-23s %-10.5f\n") % proc %
-                      (prate > 0. ? (perr / prate) : 0.);
-        }
       }
     }
 
