@@ -42,9 +42,7 @@ class MSSMLikeHiggsModel(PhysicsModel):
         """
         Split in production and decay channels. Call getHiggsSignalYieldScale. Return 1 for backgrounds.
         """
-        if not self.DC.isSignal[process]: 
-            self.modelBuilder.factory_('expr::%s_yield("@0", lumi)' % (process))
-            return "%s_yield" % process
+        if not self.DC.isSignal[process]: return 1
         processSource = process
         decaySource   = self.options.fileName+":"+bin # by default, decay comes from the datacard name or bin label
         if "_" in process: (processSource, decaySource) = process.split("_")
@@ -121,8 +119,6 @@ class FloatingMSSMXSHiggs(MSSMLikeHiggsModel):
         ## Define signal strengths on ggH and bbH as POI, NOTE: the range of the POIs is defined here
         self.modelBuilder.doVar("r_ggH[%s,%s,%s]" % (str((float(self.ggHRange[0])+float(self.ggHRange[1]))/2.), self.ggHRange[0], self.ggHRange[1]));
         self.modelBuilder.doVar("r_bbH[%s,%s,%s]" % (str((float(self.bbHRange[0])+float(self.bbHRange[1]))/2.), self.bbHRange[0], self.bbHRange[1]));
-        self.modelBuilder.doVar("lumi[1,0,500]")
-        self.modelBuilder.out.var('lumi').setConstant(True)
         poi = ",".join(["r_"+m for m in self.modes])
         ## Define Higgs boson mass as another parameter. It will be floating if mARange is set otherwise it will be treated
         ## as fixed. NOTE: this is only left here as an extended example. It's not useful to have mA floating at the moment.
@@ -156,8 +152,7 @@ class FloatingMSSMXSHiggs(MSSMLikeHiggsModel):
             ## This is the trivial model that we follow now. We just pass on the values themselves. Yes this is just a
             ## trivial renaming, but we leave it in as an example. Instead also r_ggH and r_bbH could be passed on directly
             ## in the return function instead of the newly defined variables ggH_yields or bbH_yield.
-            self.modelBuilder.factory_('expr::%s_yield("@0*@1", r_%s, lumi)' % (production, production))
-            #self.modelBuilder.factory_('expr::%s_yield("@0", r_%s)' % (production, production))
+            self.modelBuilder.factory_('expr::%s_yield("@0", r_%s)' % (production, production))
             return "%s_yield" % production
         ## This just corresponds to entry points to extend the model to other production channels like qqH, ttH, VH. 
         #
@@ -166,7 +161,7 @@ class FloatingMSSMXSHiggs(MSSMLikeHiggsModel):
         #if production in [ "WH", "ZH", "VH" ]: return ("r_VH" if "VH" in self.modes else 1)
         #
         raise RuntimeError, "Unknown production mode '%s'" % production
-    
+
 
 
 
