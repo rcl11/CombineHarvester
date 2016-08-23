@@ -3,6 +3,7 @@ import CombineHarvester.CombineTools.combine.utils as utils
 import json
 import os
 import bisect
+import re
 from CombineHarvester.CombineTools.combine.opts import OPTS
 from CombineHarvester.CombineTools.combine.CombineToolBase import CombineToolBase
 
@@ -38,6 +39,8 @@ class EnhancedCombine(CombineToolBase):
                            help='Name used to label the combine output file, can be modified by other options')
         group.add_argument(
             '--setPhysicsModelParameterRanges', help='Some other options will modify or add to the list of parameter ranges')
+        group.add_argument(
+            '--setPhysicsModelParameters', help='Some other options will modify or add to the list of parameter values')
 
 
     def attach_args(self, group):
@@ -50,6 +53,8 @@ class EnhancedCombine(CombineToolBase):
                            help='When used in conjunction with --points will create multiple combine calls that each run at most the number of points specified here.')
         group.add_argument(
             '--boundlist', help='Name of json-file which contains the ranges of physical parameters depending on the given mass and given physics model')
+        group.add_argument(
+            '--randomize', default=None, help='N:LIST, where N is number of samples, and LIST is a comma-separated list of parameters, or parameter regex, that should be randomised according to their pdfs')
 
     def set_args(self, known, unknown):
         CombineToolBase.set_args(self, known, unknown)
@@ -112,6 +117,45 @@ class EnhancedCombine(CombineToolBase):
                 self.passthru.extend(['-d', '%(DATACARD)s'])
         # elif len(self.args.datacard) == 1:
         #     self.passthru.extend(['-d', self.args.datacard[0]])
+
+        current_pars = self.args.setPhysicsModelParameters
+        put_back_pars = current_pars is not None
+        if self.args.randomize is not None and len(self.args.datacard) == 1:
+            put_back_pars = False
+            n_samples = int(self.args.randomize.split(':')[0])
+            patterns = self.args.randomize.split(':')[1].split(',')
+            do_vars = list()
+            import ROOT
+            file = ROOT.TFile(self.args.datacard[0])
+            wsp = file.Get('w')
+            allvars = wsp.allVars()
+            it = allvars.createIterator()
+            var = it.Next()
+            while var:
+                for pattern in patterns:
+                    if re.match('^' + pattern + '$', var.GetName()):
+                        do_vars.append(var.GetName())
+                var = it.Next()
+            results = {}
+            for var in do_vars:
+                results[var] = list()
+                dat = wsp.pdf('%s_Pdf' % var).generate(wsp.argSet(var), n_samples)
+                for n in xrange(n_samples):
+                    results[var].append(dat.get(n).first().getVal())
+            sub_list = []
+            for n in xrange(n_samples):
+                sub_args = ['%s=%g' % (name, results[name][n]) for name in do_vars]
+                sub_list.append((n + 1, ','.join(sub_args)))
+            subbed_vars[('RANDOMIZEIDX', 'RANDOMIZE')] = sub_list
+            if current_pars is not None:
+                self.passthru.extend(['--setPhysicsModelParameters', current_pars + ',%(RANDOMIZE)s'])
+            else:
+                self.passthru.extend(['--setPhysicsModelParameters', '%(RANDOMIZE)s'])
+            self.args.name += '.RND.%(RANDOMIZEIDX)s'
+
+        if put_back_pars:
+            self.put_back_arg('setPhysicsModelParameters', '--setPhysicsModelParameters')
+
 
         current_ranges = self.args.setPhysicsModelParameterRanges
         put_back_ranges = current_ranges is not None

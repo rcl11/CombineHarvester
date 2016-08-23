@@ -127,7 +127,7 @@ class CollectLimits(CombineToolBase):
                             for limit in ['obs', 'exp0', 'exp-2', 'exp-1', 'exp+1', 'exp+2']:
                                 js_out[mh]['toys'][limit] = []
                     if self.args.toys:
-                        if evt.iToy > 0:
+                        if evt.iToy > 0 or evt.iToy == -1:
                             if evt.quantileExpected == -1:
                                 js_out[mh]['toys']['obs'].append(evt.limit)
                             elif abs(evt.quantileExpected - 0.5) < 1E-4:
