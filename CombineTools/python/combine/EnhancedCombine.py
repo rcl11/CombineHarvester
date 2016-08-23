@@ -54,7 +54,7 @@ class EnhancedCombine(CombineToolBase):
         group.add_argument(
             '--boundlist', help='Name of json-file which contains the ranges of physical parameters depending on the given mass and given physics model')
         group.add_argument(
-            '--randomize', default=None, help='N:LIST, where N is number of samples, and LIST is a comma-separated list of parameters, or parameter regex, that should be randomised according to their pdfs')
+            '--randomize', default=None, help='N:RND:LIST, where N is number of samples, and LIST is a comma-separated list of parameters, or parameter regex, that should be randomised according to their pdfs')
 
     def set_args(self, known, unknown):
         CombineToolBase.set_args(self, known, unknown)
@@ -123,9 +123,11 @@ class EnhancedCombine(CombineToolBase):
         if self.args.randomize is not None and len(self.args.datacard) == 1:
             put_back_pars = False
             n_samples = int(self.args.randomize.split(':')[0])
-            patterns = self.args.randomize.split(':')[1].split(',')
+            rnd = int(self.args.randomize.split(':')[1])
+            patterns = self.args.randomize.split(':')[2].split(',')
             do_vars = list()
             import ROOT
+            ROOT.RooRandom.randomGenerator().SetSeed(rnd)
             file = ROOT.TFile(self.args.datacard[0])
             wsp = file.Get('w')
             allvars = wsp.allVars()
