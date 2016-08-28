@@ -61,11 +61,7 @@ combineTool.py -M HybridNewGrid ./../../../scripts/mssm_hybrid_grid_projections.
 
 Then perform the usual collection of jobs and combination of output.
 
-4) For plotting, I have been dumping the commands in the following script:
-
-scripts/HIG16006Projection/make_AN_modeldep_plots.sh
-
-5) Model dependent MSSMvsBG without h:
+4) Model dependent MSSMvsBG without h:
 
 Simple option to remove h from the datacards:
 
@@ -76,3 +72,8 @@ Then perform the usual text2workspace and limit calculation, specifically I have
 combineTool.py -M AsymptoticGrid ./../../../scripts/mssm_asymptotic_grid.json -d ../../../output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsBG_noh/cmb/mhmodp.root  --job-mode 'lxbatch'  --freezeNuisances lumiscale --merge 2 --sub-opts '-q 1nh' --task-name 'mssm_mhmodp_lumi1' --setPhysicsModelParameters lumiscale=1
 
 
+5) For plotting, I have been dumping the commands in the following script:
+
+scripts/HIG16006Projection/make_AN_modeldep_plots.sh
+
+Note that I also added a script to overlay the exclusion contours for the different lumis, example command can be found in that script. NOTE: there is a current flaw in that the script just plots conyour 0, which isnt always the main contour for MSSMvsSM limitsdue to small flucations giving additional small contours. Should be easy to fix with a check for the contour with the largest exclusion, or just plot all the contours, but i ran out of time.
