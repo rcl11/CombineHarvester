@@ -608,6 +608,9 @@ int main(int argc, char** argv) {
   demo.Close();
   cb.AddWorkspace(ws);
   cb.cp().process(ch::JoinStr({signal_types["ggH"], signal_types["bbH"]})).ExtractPdfs(cb, "htt", "$BIN_$PROCESS_morph");
+
+
+  cb.SetGroup("bbb", {"^CMS_htt_.*bin_[0-9]+$"});
   cb.PrintAll();
 
 
