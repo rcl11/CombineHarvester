@@ -1,0 +1,78 @@
+Instructions to reproduce the projection results as of 26/08/16
+
+############### Model independent ########################
+
+1)  For now I am editing ProjectHIG16006.cpp directly with different choices for the rebinning criteria. Currently using 0.8 as default, hence:
+
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_shapes_rebin0p8_shiftcen" -m MH  --postfix="-mtsv" --control_region=1 --auto_rebin=true 
+
+2) Text2workspace
+
+I tested 4 options for the systematics. For the case of all systematics retained or all removed, I used the following:
+
+combineTool.py -M T2W -o "ws.root" -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel --PO '"map=^.*/ggH$:r_ggH[0,0,200]"' --PO '"map=^.*/bbH$:r_bbH[0,0,200]"' -i output/mssm_projection_ECFA_shapes_rebin0p8/cmb/
+
+For the case of bbb only scaled:
+
+combineTool.py -M T2W -o "ws_bbbscale.root" -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel --PO '"map=^.*/ggH$:r_ggH[0,0,200]"' --PO '"map=^.*/bbH$:r_bbH[0,0,200]"' -i output/mssm_projection_ECFA_shapes_rebin0p8_shiftcen/cmb/ --X-nuisance-function 'CMS_htt_.*bin_[0-9]+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'
+
+For the case of all scaled:
+
+combineTool.py -M T2W -o "ws_allscale.root" -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel --PO '"map=^.*/ggH$:r_ggH[0,0,200]"' --PO '"map=^.*/bbH$:r_bbH[0,0,200]"' -i output/mssm_projection_ECFA_shapes_rebin0p8_shiftcen/cmb/ --X-nuisance-function 'CMS_+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-function 'lumi_+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'
+
+3) Running limits
+
+Since there are a lot of options to test these are just dumped in bash scripts here for convenience:
+
+scripts/HIG16006Projection/submit_projections.sh
+scripts/HIG16006Projection/collect_projections.sh
+
+4) Making model independent plots
+
+I have been maintaining the following script which makes all the 1D plots currently in the AN:
+
+scripts/HIG16006Projection/make_AN_1D_plots.sh
+
+############### Model dependent ########################
+
+1) Again simple usage of ProjectHIG16006:
+
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_rebin0p8_MSSMvsSM" --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false --SM125="signal_SM125"
+
+2) Text2workspace
+
+Normal command:
+
+combineTool.py -M T2W -o "mhmodp.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM/cmb/
+
+Scaling bbb's with lumi:
+
+combineTool.py -M T2W -o "mhmodp_bbbscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM/cmb/ --X-nuisance-function 'CMS_htt_.*bin_[0-9]+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'
+
+Scaling all systs. NOTE: I also divided the theory uncertainties in half directly inside MSSM.py:
+
+combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p5_MSSMvsSM/cmb/ --X-nuisance-function 'CMS_+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-function 'lumi_+' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'
+
+3) Running the limits
+
+MSSMvsSM has usual workflow. I created a subdir called CombineOutputProjectionECFA in which I put the 4 options with AllSysts, NoSysts, bbbScale and AllScale. Jobs are submitted using e.g.:
+
+combineTool.py -M HybridNewGrid ./../../../scripts/mssm_hybrid_grid_projections.json --cycles 1 --merge 2 -d ../../../output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM/cmb/mhmodp_allscale.root --job-mode 'crab3' --task-name 'mssm_mhmodp_hybridgrid_lumi1_allscale' --crab-area 'Aug18_Combine_lumi1' --freezeNuisances lumiscale -t -1 --setPhysicsModelParameters lumiscale=1 --custom-crab ../../../../CombineTools/scripts/custom_crab.py
+
+Then perform the usual collection of jobs and combination of output.
+
+4) For plotting, I have been dumping the commands in the following script:
+
+scripts/HIG16006Projection/make_AN_modeldep_plots.sh
+
+5) Model dependent MSSMvsBG without h:
+
+Simple option to remove h from the datacards:
+
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh" --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false --no_h=true
+
+Then perform the usual text2workspace and limit calculation, specifically I have been using the following asymptotic grid:
+
+combineTool.py -M AsymptoticGrid ./../../../scripts/mssm_asymptotic_grid.json -d ../../../output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsBG_noh/cmb/mhmodp.root  --job-mode 'lxbatch'  --freezeNuisances lumiscale --merge 2 --sub-opts '-q 1nh' --task-name 'mssm_mhmodp_lumi1' --setPhysicsModelParameters lumiscale=1
+
+

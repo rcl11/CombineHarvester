@@ -21,6 +21,7 @@ parser.add_argument('--x_axis_max',  help='Fix x axis maximum', default=1000.0)
 parser.add_argument('--verbosity', '-v', help='verbosity', default=0)
 parser.add_argument('--log', help='Set log range for x and y axis', action='store_true', default=False)
 parser.add_argument('--expected_only', help='Plot expected limit difference only',action='store_true', default=False)
+parser.add_argument('--plot_sigmas', help='Plot band width difference only',action='store_true', default=False)
 parser.add_argument('--outname','-o', help='Name of output plot', default='limit_comparison')
 parser.add_argument('--relative',help='Relative difference in limit',action='store_true', default=False)
 parser.add_argument('--absolute',help='Absolute difference in limit',action='store_true', default=False)
@@ -60,6 +61,8 @@ if len(labels) < len(files) and not (args.relative or args.absolute) :
   sys.exit(1)
 
 
+onesigma_graph_list = [ROOT.TGraph() for i in range(len(files))]
+twosigma_graph_list = [ROOT.TGraph() for i in range(len(files))]
 exp_graph_list = [ROOT.TGraph() for i in range(len(files))]
 #if args.relative or args.absolute:
 obs_graph_list = [ROOT.TGraph() for i in range(len(files))]
@@ -73,19 +76,37 @@ for i in range(len(files)):
     with open(files[i]) as jsonfile:
       data = json.load(jsonfile)
     exp_graph_list[i] = plot.LimitTGraphFromJSON(data, 'exp0')
+    onesigma_graph_list[i] = plot.GraphAddition(plot.LimitTGraphFromJSON(data,'exp+1'), plot.LimitTGraphFromJSON(data,'exp-1'), -1) 
+    twosigma_graph_list[i] = plot.GraphAddition(plot.LimitTGraphFromJSON(data,'exp+2'), plot.LimitTGraphFromJSON(data,'exp-2'), -1) 
+    #onesigma_graph_list[i] = plot.LimitTGraphFromJSON(data,'exp+1') 
+    #twosigma_graph_list[i] = plot.LimitTGraphFromJSON(data,'exp+2')
    # if args.relative or args.absolute:
     obs_graph_list[i] = plot.LimitTGraphFromJSON(data, 'obs')
 
 max_vals = []
 for i in range(len(exp_graph_list)):
   max_vals.append(ROOT.TMath.MaxElement(exp_graph_list[i].GetN(),exp_graph_list[i].GetY()))
-  if args.relative or args.absolute:
-    relative_exp_graph = plot.GraphDifference(exp_graph_list[0],exp_graph_list[1],True if args.relative else False) 
-    relative_obs_graph = plot.GraphDifference(obs_graph_list[0],obs_graph_list[1],True if args.relative else False)
-    del max_vals[:]
-    max_vals.append(ROOT.TMath.MaxElement(relative_exp_graph.GetN(),relative_exp_graph.GetY()))
-    if not args.expected_only:
-      max_vals.append(ROOT.TMath.MaxElement(relative_obs_graph.GetN(),relative_obs_graph.GetY()))
+if args.relative or args.absolute or args.plot_sigmas:
+  relative_exp_graph = plot.GraphDifference(exp_graph_list[0],exp_graph_list[1],True if args.relative else False) 
+  relative_obs_graph = plot.GraphDifference(obs_graph_list[0],obs_graph_list[1],True if args.relative else False)
+  x=ROOT.Double(0)
+  y=ROOT.Double(0)
+  onesigma_graph_list[0].GetPoint(10,x,y)
+  print x,y
+  onesigma_graph_list[1].GetPoint(10,x,y)
+  print x,y
+  relative_onesigma_graph = plot.GraphDivide(onesigma_graph_list[0],onesigma_graph_list[1]) 
+  relative_twosigma_graph = plot.GraphDivide(twosigma_graph_list[0],twosigma_graph_list[1])
+  relative_onesigma_graph.GetPoint(10,x,y)
+  print x,y
+  del max_vals[:]
+  if not args.plot_sigmas:
+      max_vals.append(ROOT.TMath.MaxElement(relative_exp_graph.GetN(),relative_exp_graph.GetY()))
+      if not args.expected_only:
+          max_vals.append(ROOT.TMath.MaxElement(relative_obs_graph.GetN(),relative_obs_graph.GetY()))
+  else:
+      max_vals.append(ROOT.TMath.MaxElement(relative_onesigma_graph.GetN(),relative_onesigma_graph.GetY()))
+      max_vals.append(ROOT.TMath.MaxElement(relative_twosigma_graph.GetN(),relative_twosigma_graph.GetY()))
 
 #Optional code to scale limits by parton lumi factors
 parton_lumis = {90:2.149018,100:2.197008,110:2.241856,120:2.28606,130:2.33067,140:2.37202,160:2.45378,180:2.53216,200:2.60917,250:2.79534,300:2.97773,350:3.15818,400:3.33910,450:3.52189,500:3.70655,600:4.09093,700:4.49192,800:4.92356,900:5.38754,1000:5.887}
@@ -127,6 +148,8 @@ if process_label == "gg#phi" :
         axis.GetYaxis().SetTitle("Relative diff in limit on #sigma#font[42]{(gg#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
     elif args.absolute :
         axis.GetYaxis().SetTitle("Absolute diff in limit on #sigma#font[42]{(gg#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
+    elif args.plot_sigmas:
+        axis.GetYaxis().SetTitle("Ratio of "+labels[0]+" to "+labels[1])
     else :    
         axis.GetYaxis().SetTitle("95% CL limit on #sigma#font[42]{(gg#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
 elif process_label == "bb#phi" :
@@ -134,6 +157,8 @@ elif process_label == "bb#phi" :
         axis.GetYaxis().SetTitle("Relative diff in limit on #sigma#font[42]{(bb#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
     elif args.absolute :
         axis.GetYaxis().SetTitle("Absolute diff in limit on #sigma#font[42]{(bb#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
+    elif args.plot_sigmas:
+        axis.GetYaxis().SetTitle("Ratio of "+labels[0]+" to "+labels[1])
     else :    
         axis.GetYaxis().SetTitle("95% CL limit on #sigma#font[42]{(bb#phi)}#upoint#font[52]{B}#font[42]{(#phi#rightarrow#tau#tau)} [pb]")
 else:
@@ -143,8 +168,10 @@ axis.GetXaxis().SetTitle("m_{#phi} [GeV]")
 if args.custom_x_range : axis.GetXaxis().SetRangeUser(float(args.x_axis_min), float(args.x_axis_max))
 axis.GetYaxis().SetTitleSize(0.040)    
 axis.GetYaxis().SetTitleOffset(1.2)    
+if(args.plot_sigmas): axis.SetNdivisions(10, "Y");
 pads[1].SetTickx()
 pads[1].SetTicky()
+if(args.plot_sigmas): pads[1].SetGrid(0,1)
 if args.log :
     pads[1].SetLogx(1);
     pads[1].SetLogy(1);
@@ -154,7 +181,7 @@ if args.log :
     axis.GetXaxis().SetLabelSize(0.040);
 axis.Draw()
 
-if not (args.relative or args.absolute):
+if not (args.relative or args.absolute or args.plot_sigmas):
   for i in range(len(files)):
     exp_graph_list[i].SetLineColor(colourlist[i])
     exp_graph_list[i].SetLineWidth(3)
@@ -169,20 +196,35 @@ if not (args.relative or args.absolute):
       obs_graph_list[i].SetMarkerColor(colourlist[i])
       obs_graph_list[i].SetLineStyle(1)
       obs_graph_list[i].Draw("PL")
-else:
-  relative_exp_graph.SetLineColor(ROOT.kRed)
-  relative_exp_graph.SetLineWidth(3)
-  relative_exp_graph.SetMarkerStyle(20)
-  relative_exp_graph.SetMarkerColor(ROOT.kRed)
-  relative_exp_graph.SetLineStyle(1)
-  relative_exp_graph.Draw("PL")
-  if not args.expected_only:
-    relative_obs_graph.SetLineColor(ROOT.kBlue)
-    relative_obs_graph.SetMarkerColor(ROOT.kBlue)
-    relative_obs_graph.SetLineWidth(3)
-    relative_obs_graph.SetLineStyle(2)
-    relative_obs_graph.SetMarkerStyle(20)
-    relative_obs_graph.Draw("PL")
+else :
+  if not args.plot_sigmas:
+    relative_exp_graph.SetLineColor(ROOT.kRed)
+    relative_exp_graph.SetLineWidth(3)
+    relative_exp_graph.SetMarkerStyle(20)
+    relative_exp_graph.SetMarkerColor(ROOT.kRed)
+    relative_exp_graph.SetLineStyle(1)
+    relative_exp_graph.Draw("PL")
+    if not args.expected_only:
+        relative_obs_graph.SetLineColor(ROOT.kBlue)
+        relative_obs_graph.SetMarkerColor(ROOT.kBlue)
+        relative_obs_graph.SetLineWidth(3)
+        relative_obs_graph.SetLineStyle(2)
+        relative_obs_graph.SetMarkerStyle(20)
+        relative_obs_graph.Draw("PL")
+  else:
+    relative_onesigma_graph.SetLineColor(ROOT.kRed)
+    relative_onesigma_graph.SetLineWidth(3)
+    relative_onesigma_graph.SetMarkerStyle(20)
+    relative_onesigma_graph.SetMarkerColor(ROOT.kRed)
+    relative_onesigma_graph.SetLineStyle(1)
+    relative_onesigma_graph.Draw("PL")
+    relative_twosigma_graph.SetLineColor(ROOT.kBlue)
+    relative_twosigma_graph.SetLineWidth(3)
+    relative_twosigma_graph.SetMarkerStyle(20)
+    relative_twosigma_graph.SetMarkerColor(ROOT.kBlue)
+    relative_twosigma_graph.SetLineStyle(1)
+    relative_twosigma_graph.Draw("PL")
+
 
 pads[0].cd()
 h_top = axis.Clone()
@@ -192,21 +234,30 @@ plot.Set(h_top.GetXaxis(), LabelSize=0, TitleSize=0, TickLength=0)
 plot.Set(h_top.GetYaxis(), LabelSize=0, TitleSize=0, TickLength=0)
 h_top.Draw()
 
-legend = plot.PositionedLegend(0.5 if args.relative or args.absolute else 0.4, 0.11, 3, 0.015)
+legend = plot.PositionedLegend(0.5 if args.relative or args.absolute or args.plot_sigmas else 0.4, 0.11, 3, 0.015)
 plot.Set(legend, NColumns=1, Header='#bf{%.0f%% CL Excluded:}' % 95)
-if not (args.relative or args.absolute):
+if not (args.relative or args.absolute or args.plot_sigmas):
   for i in range(len(files)):
     legend.AddEntry(exp_graph_list[i],labels[i],"PL")
-elif args.relative:
+elif args.relative or args.plot_sigmas:
   legend.SetTextSize(0.025)
-  legend.AddEntry(relative_exp_graph,"Exp 2*|"+labels[0]+"-"+labels[1]+"|/("+labels[0]+"+"+labels[1]+")","PL")
-  if not args.expected_only:
-    legend.AddEntry(relative_obs_graph,"Obs 2*|"+labels[0]+"-"+labels[1]+"|/("+labels[0]+"+"+labels[1]+")","PL")
-elif args.absolute:
+  if not args.plot_sigmas :
+    legend.AddEntry(relative_exp_graph,"Exp 2*|"+labels[0]+"-"+labels[1]+"|/("+labels[0]+"+"+labels[1]+")","PL")
+    if not args.expected_only:
+      legend.AddEntry(relative_obs_graph,"Obs 2*|"+labels[0]+"-"+labels[1]+"|/("+labels[0]+"+"+labels[1]+")","PL")
+  else:
+    legend.AddEntry(relative_onesigma_graph,"(1 #sigma width of "+labels[0]+")/(1 #sigma width of "+labels[1]+")","PL")
+    legend.AddEntry(relative_twosigma_graph,"(2 #sigma width of "+labels[0]+")/(2 #sigma width of "+labels[1]+")","PL")
+elif args.absolute or args.plot_sigmas:
   legend.SetTextSize(0.025)
-  legend.AddEntry(relative_exp_graph,"Exp 2*("+labels[0]+"-"+labels[1]+")/("+labels[0]+"+"+labels[1]+")","PL")
-  if not args.expected_only:
-    legend.AddEntry(relative_obs_graph,"Obs 2*("+labels[0]+"-"+labels[1]+")/("+labels[0]+"+"+labels[1]+")","PL")
+  if not args.plot_sigmas :
+    legend.AddEntry(relative_exp_graph,"Exp 2*("+labels[0]+"-"+labels[1]+")/("+labels[0]+"+"+labels[1]+")","PL")
+    if not args.expected_only:
+      legend.AddEntry(relative_obs_graph,"Obs 2*("+labels[0]+"-"+labels[1]+")/("+labels[0]+"+"+labels[1]+")","PL")
+  else:
+    legend.AddEntry(relative_onesigma_graph,"(1 #sigma width of "+labels[0]+")/(1 #sigma width of "+labels[1]+")","PL")
+    legend.AddEntry(relative_twosigma_graph,"(2 #sigma width of "+labels[0]+")/(2 #sigma width of "+labels[1]+")","PL")
+      
 legend.Draw()
 
 latex2 = ROOT.TLatex()

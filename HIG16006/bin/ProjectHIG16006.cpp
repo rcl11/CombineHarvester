@@ -79,6 +79,7 @@ int main(int argc, char** argv) {
   bool do_w_weighting = true;
   bool hist_err_shift_up=false;
   bool hist_err_shift_down=false;
+  bool no_h = false;
   po::variables_map vm;
   po::options_description config("configuration");
   config.add_options()
@@ -98,7 +99,8 @@ int main(int argc, char** argv) {
     ("control_region", po::value<int>(&control_region)->default_value(0))
     ("check_neg_bins", po::value<bool>(&check_neg_bins)->default_value(false))
     ("poisson_bbb", po::value<bool>(&poisson_bbb)->default_value(false))
-    ("w_weighting", po::value<bool>(&do_w_weighting)->default_value(true));
+    ("w_weighting", po::value<bool>(&do_w_weighting)->default_value(true))
+    ("no_h", po::value<bool>(&no_h)->default_value(false));
   po::store(po::command_line_parser(argc, argv).options(config).run(), vm);
   po::notify(vm);
 
@@ -194,10 +196,18 @@ int main(int argc, char** argv) {
 
   vector<string> masses = {"90","100","110","120","130","140","160","180", "200", "250", "300", "350", "400", "450", "500", "600", "700", "800", "900","1000","1200","1400","1500","1600","1800","2000","2300","2600","2900","3200"};
 
-  map<string, VString> signal_types = {
-    {"ggH", {"ggh_htautau", "ggH_Htautau", "ggA_Atautau"}},
-    {"bbH", {"bbh_htautau", "bbH_Htautau", "bbA_Atautau"}}
-  };
+  map<string, VString> signal_types ;
+  if(no_h) {
+      signal_types = {
+        {"ggH", {"ggH_Htautau", "ggA_Atautau"}},
+        {"bbH", {"bbH_Htautau", "bbA_Atautau"}}
+      };
+  } else {
+      signal_types = {
+        {"ggH", {"ggh_htautau", "ggH_Htautau", "ggA_Atautau"}},
+        {"bbH", {"bbh_htautau", "bbH_Htautau", "bbA_Atautau"}}
+      };
+  }
   if(mass=="MH"){
     signal_types = {
       {"ggH", {"ggH"}},
@@ -397,7 +407,7 @@ int main(int argc, char** argv) {
 
   auto rebin = ch::AutoRebin()
     .SetBinThreshold(0.)
-   // .SetBinUncertFraction(0.5)
+    .SetBinUncertFraction(0.8)
     .SetRebinMode(1)
     .SetPerformRebin(true)
     .SetVerbosity(1);
@@ -567,10 +577,18 @@ int main(int argc, char** argv) {
   TFile demo("htt_mssm_demo.root", "RECREATE");
 
   bool do_morphing = true;
-  map<string, RooAbsReal *> mass_var = {
-    {"ggh_htautau", &mh}, {"ggH_Htautau", &mH}, {"ggA_Atautau", &mA},
-    {"bbh_htautau", &mh}, {"bbH_Htautau", &mH}, {"bbA_Atautau", &mA}
-  };
+  map<string, RooAbsReal *> mass_var;
+  if(no_h) {
+      mass_var = {
+        {"ggH_Htautau", &mH}, {"ggA_Atautau", &mA},
+        {"bbH_Htautau", &mH}, {"bbA_Atautau", &mA}
+      };
+  } else {
+      mass_var = {
+        {"ggh_htautau", &mh}, {"ggH_Htautau", &mH}, {"ggA_Atautau", &mA},
+        {"bbh_htautau", &mh}, {"bbH_Htautau", &mH}, {"bbA_Atautau", &mA}
+      };
+  }
   if(mass=="MH"){
     mass_var = {
       {"ggH", &mA},

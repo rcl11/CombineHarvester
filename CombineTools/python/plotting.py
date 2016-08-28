@@ -859,6 +859,17 @@ def GraphDivide(num, den):
 
     return res
 
+def GraphAddition(graph1,graph2,factor):
+    xvals =[]
+    yvals =[]
+    if graph1.GetN() != graph2.GetN():
+        return graph1
+    for i in range(graph1.GetN()):
+        xvals.append(graph1.GetX()[i])
+        yvals.append(graph1.GetY()[i] + factor*graph2.GetY()[i])
+    new_graph = R.TGraph(len(xvals),array('d',xvals),array('d',yvals))
+    new_graph.Sort()
+    return new_graph
 
 def MakeRatioHist(num, den, num_err, den_err):
     """Make a new ratio TH1 from numerator and denominator TH1s with optional
