@@ -77,3 +77,19 @@ combineTool.py -M AsymptoticGrid ./../../../scripts/mssm_asymptotic_grid.json -d
 scripts/HIG16006Projection/make_AN_modeldep_plots.sh
 
 Note that I also added a script to overlay the exclusion contours for the different lumis, example command can be found in that script. NOTE: there is a current flaw in that the script just plots conyour 0, which isnt always the main contour for MSSMvsSM limitsdue to small flucations giving additional small contours. Should be easy to fix with a check for the contour with the largest exclusion, or just plot all the contours, but i ran out of time.
+
+------
+
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh" --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false --no_h=true
+
+The scaling functions can now be applied to NP groups, and there was a central request to have a group called "scales_with_lumi". I've set this to apply to all NPs apart from the lumi uncertainty itself, where there was some discussion that this would probably not improve that much and eventually hit some systematic limit.
+
+Workspace creation becomes
+
+combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/ -v 2 --X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-function '"^xs_.*"' '0.5'
+
+And then the fits, note have to add '-t -1' option!
+
+combineTool.py -M AsymptoticGrid ./../../../scripts/mssm_asymptotic_grid.json -d ../../../output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/mhmodp_allscale.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 10 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_allscale-lumi1 --setPhysicsModelParameters lumiscale=1 -t -1
+
+

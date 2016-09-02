@@ -611,6 +611,7 @@ int main(int argc, char** argv) {
 
 
   cb.SetGroup("bbb", {"^CMS_htt_.*bin_[0-9]+$"});
+  cb.SetGroup("scales_with_lumi", {"^CMS_.*$"});
   cb.PrintAll();
 
 
