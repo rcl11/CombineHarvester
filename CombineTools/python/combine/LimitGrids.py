@@ -7,7 +7,7 @@ import re
 import zipfile
 import os
 import bisect
-from math import floor
+from math import floor, isnan
 from array import array
 
 import CombineHarvester.CombineTools.combine.utils as utils
@@ -106,6 +106,9 @@ class AsymptoticGrid(CombineToolBase):
         if fin.IsZombie(): continue
         tree = fin.Get('limit')
         for evt in tree:
+          if isnan(evt.limit):
+            print 'Have NaN for %s,%s' % (key[0],key[1])
+            continue
           if abs(evt.quantileExpected+1)<0.01:
             xvals.append(float(key[0]))
             yvals.append(float(key[1]))
