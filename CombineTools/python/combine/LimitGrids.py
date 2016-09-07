@@ -197,6 +197,9 @@ class HybridNewGrid(CombineToolBase):
         if (len(results)) > 1:
           for r in results[1:]:
             results[0].Append(r)
+        if len(results) == 0:
+            print '>> Warning, No HypoTestResults found in file(s) %s, did something go wrong in your fits?' % '+'.join(files)
+            return None
         ntoys = min(results[0].GetNullDistribution().GetSize(), results[0].GetAltDistribution().GetSize())
         if ntoys == 0:
             print '>> Warning, HypoTestResult from file(s) %s does not contain any toy results, did something go wrong in your fits?' % '+'.join(files)
@@ -500,6 +503,10 @@ class HybridNewGrid(CombineToolBase):
             precomputed = None
             if status_key in stats and not status_changed:
                 precomputed = stats[status_key]
+                for cont in contours:
+                  if cont not in precomputed:
+                    precomputed = None
+                    break
             else:
                 res = self.GetCombinedHypoTest(files)
 
