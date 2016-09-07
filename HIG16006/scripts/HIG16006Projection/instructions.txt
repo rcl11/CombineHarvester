@@ -79,17 +79,153 @@ scripts/HIG16006Projection/make_AN_modeldep_plots.sh
 Note that I also added a script to overlay the exclusion contours for the different lumis, example command can be found in that script. NOTE: there is a current flaw in that the script just plots conyour 0, which isnt always the main contour for MSSMvsSM limitsdue to small flucations giving additional small contours. Should be easy to fix with a check for the contour with the largest exclusion, or just plot all the contours, but i ran out of time.
 
 ------
+# Interesting scenarios:
+# (1) No systematics
+# (2) Only bbb scale with lumi
+# (3) All syst scale with lumi
+# (4) All syst scale with lumi + theory * 0.5
+# (5) All syst scale with lumi but some are capped at particular values + theory * 0.5
 
+
+# Electron and muon efficienies shouldn't go below 2% - i.e. don't scale beyond what we have now
+CMS_eff_e
+CMS_eff_m
+
+# Tau efficiencies, currently stats limited, but assume will hit some systematic limit at a few => allow to half but no more
+CMS_eff_t_13TeV
+CMS_eff_t_et_13TeV
+CMS_eff_t_mssmHigh_et_13TeV
+CMS_eff_t_mssmHigh_mt_13TeV
+CMS_eff_t_mssmHigh_tt_13TeV
+CMS_eff_t_mt_13TeV
+CMS_eff_t_tt_13TeV
+
+# b-tagging
+CMS_eff_b_13TeV  # no lower than 1% -> we're on ~ 2% now, so allow to half
+CMS_fake_b_13TeV # no lower than 5% on medium -> this seems to be what we have already, don't scale
+
+# Assume these analysis specific ones just scales with lumi forever
+CMS_htt_QCD_OS_SS_syst_em_btag
+CMS_htt_QCD_OS_SS_syst_em_nobtag
+CMS_htt_QCD_OS_SS_syst_et_btag_13TeV
+CMS_htt_QCD_OS_SS_syst_et_nobtag_13TeV
+CMS_htt_QCD_OS_SS_syst_mt_btag_13TeV
+CMS_htt_QCD_OS_SS_syst_mt_nobtag_13TeV
+CMS_htt_QCD_norm_syst_tt_btag
+CMS_htt_QCD_norm_syst_tt_nobtag
+CMS_htt_W_OS_SS_stat_et_btag_13TeV
+CMS_htt_W_OS_SS_stat_et_nobtag_13TeV
+CMS_htt_W_OS_SS_stat_mt_btag_13TeV
+CMS_htt_W_OS_SS_stat_mt_nobtag_13TeV
+CMS_htt_W_OS_SS_syst_et_btag_13TeV
+CMS_htt_W_OS_SS_syst_et_nobtag_13TeV
+CMS_htt_W_OS_SS_syst_mt_btag_13TeV
+CMS_htt_W_OS_SS_syst_mt_nobtag_13TeV
+CMS_htt_W_mT_stat_et_btag_13TeV
+CMS_htt_W_mT_stat_et_nobtag_13TeV
+CMS_htt_W_mT_stat_mt_btag_13TeV
+CMS_htt_W_mT_stat_mt_nobtag_13TeV
+CMS_htt_W_mT_syst_et_btag_13TeV
+CMS_htt_W_mT_syst_et_nobtag_13TeV
+CMS_htt_W_mT_syst_mt_btag_13TeV
+CMS_htt_W_mT_syst_mt_nobtag_13TeV
+CMS_htt_boson_reso_met_13TeV
+CMS_htt_boson_scale_met_13TeV
+CMS_htt_dyShape_13TeV
+CMS_htt_eFakeTau_loose_13TeV
+CMS_htt_eFakeTau_tight_13TeV
+CMS_htt_ewkTop_reso_met_13TeV
+CMS_htt_ewkTop_scale_met_13TeV
+CMS_htt_jetFakeTau_et_13TeV
+CMS_htt_jetFakeTau_mt_13TeV
+CMS_htt_jetFakeTau_tt_13TeV
+CMS_htt_mFakeTau_13TeV
+CMS_htt_ttbarShape_13TeV
+CMS_htt_wFakeShape_13TeV
+CMS_htt_zttAccept_em_btag_13TeV
+CMS_htt_zttAccept_em_nobtag_13TeV
+CMS_htt_zttAccept_et_btag_13TeV
+CMS_htt_zttAccept_et_nobtag_13TeV
+CMS_htt_zttAccept_mt_btag_13TeV
+CMS_htt_zttAccept_mt_nobtag_13TeV
+CMS_htt_zttAccept_tt_btag_13TeV
+CMS_htt_zttAccept_tt_nobtag_13TeV
+CMS_scale_e_em_13TeV
+CMS_scale_j_13TeV
+CMS_scale_t_et_13TeV
+CMS_scale_t_mt_13TeV
+CMS_scale_t_tt_13TeV
+
+# Background theory - should go by 1/2
+CMS_htt_vvXsec_13TeV
+CMS_htt_tjXsec_13TeV
+CMS_htt_wjXsec_13TeV
+CMS_htt_zjXsec_13TeV
+
+# Don't scale lumi for now
+lumi_13TeV
+
+# Model independent
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_shapes_rebin0p8" -m MH  --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false
+
+# Model dependent
 ProjectHIG16006 --output_folder="mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh" --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false --no_h=true
 
 The scaling functions can now be applied to NP groups, and there was a central request to have a group called "scales_with_lumi". I've set this to apply to all NPs apart from the lumi uncertainty itself, where there was some discussion that this would probably not improve that much and eventually hit some systematic limit.
 
-Workspace creation becomes
+### Workspace creation becomes
 
-combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/ -v 2 --X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-function '"^xs_.*"' '0.5'
+# Current "complete" scaling expression
+--X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'eff_t' '"expr::eff_t_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5' --X-nuisance-function '"^xs_.*"' '0.5'
 
+# Or scaling everything with lumi apart from theory and the lumi uncert:
+--X-nuisance-group-function 'all_scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5'  --X-nuisance-function '"^xs_.*"' '0.5'
+
+# Model independent
+combineTool.py -M T2W -o "ws_allscale.root" -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel -v 2 --PO '"map=^.*/ggH:r_ggH[0,0,200]"' --PO '"map=^.*/bbH:r_bbH[0,0,200]"' -i output/mssm_projection_ECFA_shapes_rebin0p8/cmb/
+
+# Model dependent
+combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/ -v 2 
+
+# Model independent limits
+
+for LUMI in 300 3000; do for MODEL in allscale finalscale; do for TYPE in ggH bbH; do combineTool.py -m "90,100,110,120,130,140,160,180,200,250,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2300,2600,2900,3200" -M Asymptotic --boundlist input/mssm_boundaries-100.json --setPhysicsModelParameters r_ggH=0,r_bbH=0,lumiscale=$(bc -l <<< "$LUMI / 2.3") --freezeNuisances lumiscale --redefineSignalPOIs r_${TYPE} -d output/mssm_projection_ECFA_shapes_rebin0p8/cmb/ws_${MODEL}.root --there -n "${MODEL}.${TYPE}.lumi${LUMI}" -t -1 --rAbsAcc 0 --rRelAcc 0.0005 --parallel 4; done; done; done
+
+
+for LUMI in 300 3000; do for MODEL in allscale finalscale; do for TYPE in ggH bbH; do combineTool.py -M CollectLimits output/mssm_projection_ECFA_shapes_rebin0p8/cmb/higgsCombine${MODEL}.${TYPE}.lumi${LUMI}.* --use-dirs -o "mssm_projection_ECFA_shapes_rebin0p8_lumi${LUMI}_${MODEL}_${TYPE}.json"; done; done; done
+
+python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
+'mssm_projection_ECFA_shapes_rebin0p8_lumi300_allscale_ggH_cmb.json:exp0:Title="300 allscale"' \
+'mssm_projection_ECFA_shapes_rebin0p8_lumi300_finalscale_ggH_cmb.json:exp0:Title="300 bound"' \
+'mssm_projection_ECFA_shapes_rebin0p8_lumi3000_allscale_ggH_cmb.json:exp0:Title="3000 allscale"' \
+'mssm_projection_ECFA_shapes_rebin0p8_lumi3000_finalscale_ggH_cmb.json:exp0:Title="3000 bound"' \
+--logy --logx --auto-style  --output="AN_ECFA_shapes_rebin0p8_SystCompare_ggH" --show exp --process="gg#phi"
+
+
+# Model dependent H+A vs Bkg Asympotic
 And then the fits, note have to add '-t -1' option!
 
-combineTool.py -M AsymptoticGrid ./../../../scripts/mssm_asymptotic_grid.json -d ../../../output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/mhmodp_allscale.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 10 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_allscale-lumi1 --setPhysicsModelParameters lumiscale=1 -t -1
 
+combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid.json -d ../mhmodp_allscale.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 100 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_allscale-lumi3000 --setPhysicsModelParameters lumiscale=1304.34782609 -t -1
+
+# And now testing MSSMvsSM:
+
+ProjectHIG16006 --output_folder="mssm_projection_ECFA_rebin0p8_MSSMvsSM" --postfix="-mtsv" --control_region=1 --auto_rebin=true --real_data=false --SM125="signal_SM125"
+
+
+combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.MSSM:MSSM --PO filePrefix=$PWD/shapes/Models/ --PO modelFiles=13TeV,mhmodp_mu200_13TeV.root,1 -i output/mssm_projection_ECFA_rebin0p8_MSSMvsSM/cmb/ -v 2 --X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-function '"^xs_.*"' '0.5'
+
+combineTool.py -M HybridNewGrid ../../../../scripts/mssm_hybrid_grid_projections.json --cycles 1 --merge 4 -d ../mhmodp_allscale.root \
+--freezeNuisances lumiscale --setPhysicsModelParameters lumiscale=1304.34782609 -t -1 '| tail -20' \
+--job-mode crab3 --task-name mssm_mhmodp_allscale-lumi3000 --custom-crab custom_crab.py
+# --job-mode SGE --prefix-file naf --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_allscale-lumi3000
+
+
+# Impacts on model independent:
+
+combineTool.py -m 100 -M Impacts --setPhysicsModelParameterRanges r_ggH=0,10:r_bbH=0,10 --setPhysicsModelParameters r_ggH=2.5,r_bbH=1.4,lumiscale=130.434782609 --freezeNuisances lumiscale --redefineSignalPOIs r_ggH,r_bbH -d ../ws_allscale.root --robustFit 1 --minimizerAlgoForMinos Minuit2,Migrad -t -1 -n impacts.lumi300 --doInitialFit
+# --doFits --job-mode SGE --prefix-file naf --task-name impacts-lumiscale300-mH100 --merge 10
+
+combineTool.py -m 100 -M Impacts --setPhysicsModelParameterRanges r_ggH=0,10:r_bbH=0,10 --setPhysicsModelParameters r_ggH=2.5,r_bbH=1.4,lumiscale=1304.34782609 --freezeNuisances lumiscale --redefineSignalPOIs r_ggH,r_bbH -d ../ws_allscale.root --robustFit 1 --minimizerAlgoForMinos Minuit2,Migrad -t -1 -n impacts.lumi3000 --doInitialFit
+# --doFits --job-mode SGE --prefix-file naf --task-name impacts-lumiscale3000-mH100 --merge 10
 

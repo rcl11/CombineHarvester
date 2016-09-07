@@ -612,7 +612,31 @@ int main(int argc, char** argv) {
 
   cb.SetGroup("bbb", {"^CMS_htt_.*bin_[0-9]+$"});
   cb.SetGroup("scales_with_lumi", {"^CMS_.*$"});
-  cb.PrintAll();
+
+  // Electron and muon efficiencies don't scale (for now)
+  cb.RemoveGroup("scales_with_lumi", {"^CMS_eff_[em]$"});
+
+  // Tau efficiencies do scale, but by 1/2 at most
+  cb.RemoveGroup("scales_with_lumi", {"^CMS_eff_t_.*$"});
+  cb.SetGroup("eff_t", {"^CMS_eff_t_.*$"});
+
+  // B-tagging efficiency does scale, but by 1/2 at most (2% now, 1% limiting)
+  cb.RemoveGroup("scales_with_lumi", {"^CMS_eff_b_13TeV$"});
+  cb.SetGroup("eff_b", {"^CMS_eff_b_13TeV$"});
+
+  // B-tagging fake rate doesn't scale (staying around 5%)
+  cb.RemoveGroup("scales_with_lumi", {"^CMS_fake_b_13TeV$"});
+
+  // Background cross sections go by 1/2 with the signal theory
+  cb.RemoveGroup("scales_with_lumi", {"^CMS_htt_.*Xsec.*$"});
+  cb.SetGroup("theory", {"^CMS_htt_.*Xsec.*$"});
+
+  // Or if we want to go back to scaling everything with lumi (except theory & lumi uncert)
+  cb.SetGroup("all_scales_with_lumi", {"^CMS_.*$"});
+  cb.RemoveGroup("all_scales_with_lumi", {"^CMS_htt_.*Xsec.*$"});
+
+
+  // cb.PrintAll();
 
 
  //Write out datacards. Naming convention important for rest of workflow. We
