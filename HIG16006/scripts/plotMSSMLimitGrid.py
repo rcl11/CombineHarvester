@@ -100,7 +100,9 @@ h_proto = plot.TH2FromTGraph2D(graphs[types[0]], method=args.bin_method,
                                force_y_width=args.force_y_width)
 h_axis = h_proto
 h_axis = plot.TH2FromTGraph2D(graphs[types[0]])
-
+print (h_axis.GetXaxis().GetXmin(), h_axis.GetXaxis().GetXmax())
+print (h_axis.GetYaxis().GetXmin(), h_axis.GetYaxis().GetXmax())
+h_axis = ROOT.TH2F('axis', '', 10, 90.1, 2000,10,1,60)
 
 # Get histogram to plot m_h exclusion from the model file if provided
 if args.model_file is not None:
@@ -116,10 +118,11 @@ if args.extra_contour_file is not None:
     for filename in contour_files:
         extra_contour_file = ROOT.TFile(filename)
         extra_contour_file_contents = extra_contour_file.GetListOfKeys()
-        extra_contour_names = []
+        extra_contours_per_index = []
         for i in range(0,len(extra_contour_file_contents)):
-            extra_contour_names.append(extra_contour_file_contents[i].GetName())
-            extra_contours_per_index = [extra_contour_file.Get(c) for c in extra_contour_names]
+            obj = extra_contour_file.Get(extra_contour_file_contents[i].GetName())
+            if isinstance(obj, ROOT.TGraph):
+                extra_contours_per_index.append(obj)
         extra_contours.append(extra_contours_per_index)
 else:
     extra_contours = None
@@ -264,6 +267,7 @@ if mh122_contours is not None:
 if extra_contours is not None:
     if args.extra_contour_style is not None: 
         contour_styles = args.extra_contour_style.split(',')
+    print extra_contours
     for i in range(0,len(extra_contours)):
         for gr in extra_contours[i]:
             plot.Set(gr,LineWidth=2,LineColor=ROOT.kBlue,LineStyle=int(contour_styles[i]))
