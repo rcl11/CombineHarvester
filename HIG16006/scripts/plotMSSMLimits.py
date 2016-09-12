@@ -74,6 +74,15 @@ if args.higgs_bg:
 if args.higgs_injected:
     style_dict = style_dict_inj
 
+# style_dict = {
+#     'style' : {},
+#     'legend': {
+#         'exp0': {
+#             'Label': 'HIG-16-006 Expected (2.3 fb^{-1})'
+#         }
+#     }
+# }
+
 def DrawAxisHists(pads, axis_hists, def_pad=None):
     for i, pad in enumerate(pads):
         pad.cd()
@@ -101,7 +110,7 @@ for padx in pads:
     # Use tick marks on oppsite axis edges
     plot.Set(padx, Tickx=1, Ticky=1, Logx=args.logx)
     if args.pad_style is not None:
-        settings = {x.split('=')[0]: eval(x.split('=')[1]) for x in args.pad_style.split(',')}
+        settings = {x.split('=')[0]: eval(x.split('=')[1]) for x in args.pad_style.split(';')}
         print 'Applying style options to the TPad(s):'
         print settings
         plot.Set(padx, **settings)
@@ -112,9 +121,14 @@ graph_sets = []
 if args.higgs_bg or args.higgs_injected:
     legend = plot.PositionedLegend(0.4, 0.25, 3, 0.015)
 else:
-    legend = plot.PositionedLegend(0.3, 0.2, 3, 0.015)
+    # legend = plot.PositionedLegend(0.3, 0.2, 3, 0.015)
+    legend = ROOT.TLegend(0.66, 0.67, 0.94, 0.93, '', 'NBNDC')
+    legend.SetHeader('#bf{Projections}')
 #legend = plot.PositionedLegend(0.45, 0.10, 3, 0.015)
 #plot.Set(legend, NColumns=2)
+
+legend_ref = ROOT.TLegend(0.38, 0.72, 0.64, 0.93, '', 'NBNDC')
+legend_ref.SetHeader('#bf{HIG-16-006 (2.3 fb^{-1})}')
 
 axis = None
 
@@ -144,12 +158,12 @@ for src in args.input:
         if axis is None:
             axis = plot.CreateAxisHists(len(pads), graph_sets[-1].values()[0], True)
             DrawAxisHists(pads, axis, pads[0])
-        if args.higgs_bg or args.higgs_injected:
+        if args.higgs_bg or args.higgs_injected or style_dict is not None:
             plot.StyleLimitBand(graph_sets[-1],overwrite_style_dict=style_dict["style"])
             plot.DrawLimitBand(pads[0], graph_sets[-1], legend=legend,legend_overwrite=style_dict["legend"])
         else:
             plot.StyleLimitBand(graph_sets[-1])
-            plot.DrawLimitBand(pads[0], graph_sets[-1],legend=legend)
+            plot.DrawLimitBand(pads[0], graph_sets[-1],legend=legend_ref)
         pads[0].RedrawAxis()
         pads[0].RedrawAxis('g')
         pads[0].GetFrame().Draw()
@@ -237,6 +251,7 @@ pads[0].cd()
 if legend.GetNRows() == 1:
     legend.SetY1(legend.GetY2() - 0.5*(legend.GetY2()-legend.GetY1()))
 legend.Draw()
+legend_ref.Draw()
 
 # line = ROOT.TLine()
 # line.SetLineColor(ROOT.kBlue)
