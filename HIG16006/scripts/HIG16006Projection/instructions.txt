@@ -252,6 +252,21 @@ combineTool.py -M HybridNewGrid ../../../../scripts/mssm_hybrid_grid_projections
 
 # Impacts on model independent:
 
+WSP="../ws_finalscale.root"; combineTool.py -m 1000 -M Impacts \
+--setPhysicsModelParameterRanges r_ggH=0,0.001:r_bbH=0,0.008 \
+--setPhysicsModelParameters r_ggH=0.0,r_bbH=0.0008,lumiscale=1304.34782609 \
+--freezeNuisances lumiscale,r_ggH --redefineSignalPOIs r_bbH -d ${WSP} \
+--robustFit 1 --stepSize 0.01 --minimizerAlgoForMinos Minuit2,Migrad --cminFallbackAlgo "Minuit2,Minimize,0:0.1" \
+-t -1 -n impacts.lumi3000 --doInitialFit
+
+WSP="../ws_finalscale.root"; combineTool.py -m 1000 -M Impacts \
+--setPhysicsModelParameterRanges r_ggH=0,0.001:r_bbH=0,0.008 \
+--setPhysicsModelParameters r_ggH=0.0,r_bbH=0.0008,lumiscale=1304.34782609 \
+--freezeNuisances lumiscale,r_ggH --redefineSignalPOIs r_bbH -d ${WSP} \
+--robustFit 1 --minimizerAlgoForMinos Minuit2,Migrad --cminFallbackAlgo "Minuit2,Minimize,0:0.1" \
+-t -1 -n impacts.lumi3000  --doFits \
+--job-mode SGE --prefix-file naf --task-name impacts-lumi3000-mH1000 --merge 5
+
 combineTool.py -m 100 -M Impacts --setPhysicsModelParameterRanges r_ggH=0,10:r_bbH=0,10 --setPhysicsModelParameters r_ggH=2.5,r_bbH=1.4,lumiscale=130.434782609 --freezeNuisances lumiscale --redefineSignalPOIs r_ggH,r_bbH -d ../ws_allscale.root --robustFit 1 --minimizerAlgoForMinos Minuit2,Migrad -t -1 -n impacts.lumi300 --doInitialFit
 # --doFits --job-mode SGE --prefix-file naf --task-name impacts-lumiscale300-mH100 --merge 10
 
