@@ -185,6 +185,9 @@ The scaling functions can now be applied to NP groups, and there was a central r
 # Or scaling everything with lumi apart from theory and the lumi uncert:
 --X-nuisance-group-function 'all_scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5'  --X-nuisance-function '"^xs_.*"' '0.5'
 
+# Just bbb
+--X-nuisance-group-function 'bbb' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'
+
 # Model independent
 combineTool.py -M T2W -o "ws_allscale.root" -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel -v 2 --PO '"map=^.*/ggH:r_ggH[0,0,200]"' --PO '"map=^.*/bbH:r_bbH[0,0,200]"' -i output/mssm_projection_ECFA_shapes_rebin0p8/cmb/
 
@@ -193,10 +196,10 @@ combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.
 
 # Model independent limits
 
-for LUMI in 300 3000; do for MODEL in allscale finalscale; do for TYPE in ggH bbH; do combineTool.py -m "90,100,110,120,130,140,160,180,200,250,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2300,2600,2900,3200" -M Asymptotic --boundlist input/mssm_boundaries-100.json --setPhysicsModelParameters r_ggH=0,r_bbH=0,lumiscale=$(bc -l <<< "$LUMI / 2.3") --freezeNuisances lumiscale --redefineSignalPOIs r_${TYPE} -d output/mssm_projection_ECFA_shapes_rebin0p8/cmb/ws_${MODEL}.root --there -n "${MODEL}.${TYPE}.lumi${LUMI}" -t -1 --rAbsAcc 0 --rRelAcc 0.0005 --parallel 4; done; done; done
+for LUMI in 300 3000; do for MODEL in bbbscale finalscale; do for TYPE in ggH bbH; do combineTool.py -m "90,100,110,120,130,140,160,180,200,250,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2300,2600,2900,3200" -M Asymptotic --boundlist input/mssm_boundaries-100.json --setPhysicsModelParameters r_ggH=0,r_bbH=0,lumiscale=$(bc -l <<< "$LUMI / 2.3") --freezeNuisances lumiscale --redefineSignalPOIs r_${TYPE} -d output/mssm_projection_ECFA_shapes_rebin0p8/cmb/ws_${MODEL}.root --there -n "${MODEL}.${TYPE}.lumi${LUMI}" -t -1 --rAbsAcc 0 --rRelAcc 0.0005 --parallel 4; done; done; done
 
 
-for LUMI in 300 3000; do for MODEL in allscale finalscale; do for TYPE in ggH bbH; do combineTool.py -M CollectLimits output/mssm_projection_ECFA_shapes_rebin0p8/cmb/higgsCombine${MODEL}.${TYPE}.lumi${LUMI}.* --use-dirs -o "mssm_projection_ECFA_shapes_rebin0p8_lumi${LUMI}_${MODEL}_${TYPE}.json"; done; done; done
+for LUMI in 300 3000; do for MODEL in nosyst bbbscale finalscale; do for TYPE in ggH bbH; do combineTool.py -M CollectLimits output/mssm_projection_ECFA_shapes_rebin0p8/cmb/higgsCombine${MODEL}.${TYPE}.lumi${LUMI}.* --use-dirs -o "mssm_projection_ECFA_shapes_rebin0p8_lumi${LUMI}_${MODEL}_${TYPE}.json"; done; done; done
 
 python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
 'mssm_projection_ECFA_shapes_rebin0p8_lumi300_allscale_ggH_cmb.json:exp0:Title="300 allscale"' \
@@ -205,11 +208,34 @@ python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
 'mssm_projection_ECFA_shapes_rebin0p8_lumi3000_finalscale_ggH_cmb.json:exp0:Title="3000 bound"' \
 --logy --logx --auto-style  --output="AN_ECFA_shapes_rebin0p8_SystCompare_ggH" --show exp --process="gg#phi"
 
+for PROC in gg bb; do python scripts/plotMSSMLimits.py --cms-sub="Projection" \
+--pad-style 'Grid=(1,1)' \
+ECFA_rebin0p8_lumi2.3_nominal_${PROC}H_cmb.json \
+ECFA_rebin0p8_lumi300_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
+ECFA_rebin0p8_lumi300_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
+ECFA_rebin0p8_lumi3000_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
+ECFA_rebin0p8_lumi3000_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
+--logy --logx --auto-style  --output="ECFA_rebin0p8_compare_${PROC}H" --show exp --process="${PROC}#phi"; done
+
+ECFA_rebin0p8_lumi3000_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
+ECFA_rebin0p8_lumi300_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
+
 
 # Model dependent H+A vs Bkg Asympotic
 And then the fits, note have to add '-t -1' option!
 
-for LUMI in 300 3000; do for MODEL in allscale finalscalefinalscale; do pushd ${MODEL}-lumi${LUMI}; combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid_projections.json -d ../mhmodp_${MODEL}.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 100 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_${MODEL}-lumi${LUMI} --setPhysicsModelParameters lumiscale=$(bc -l <<< "$LUMI / 2.3") -t -1; popd; done; done
+for LUMI in 300 3000; do for MODEL in bbbscale allscale finalscale finalnothscale; do pushd ${MODEL}-lumi${LUMI}; combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid_projections.json -d ../mhmodp_${MODEL}.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 100 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_${MODEL}-lumi${LUMI} --setPhysicsModelParameters lumiscale=$(bc -l <<< "$LUMI / 2.3") -t -1; popd; done; done
+
+for LUMI in 300 3000; do for MODEL in bbbscale; do pushd ${MODEL}-lumi${LUMI}-alt; combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid_projections.json -d ../mhmodp_${MODEL}.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 20 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_${MODEL}-lumi${LUMI} --setPhysicsModelParameters lumiscale=$(bc -l <<< "$LUMI / 2.3") -t -1 --cminPreScan --cminPreFit 1; popd; done; done
+
+
+
+for LUMI in 300 3000; do for MODEL in bbbscale allscale finalnothscale finalscale; do python scripts/plotMSSMLimitGrid.py output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/${MODEL}-lumi${LUMI}/asymptotic_grid.root -o limits-${MODEL}-lumi${LUMI} -d limits-${MODEL}-lumi${LUMI}.root --contours exp0; done; done
+
+LOC="output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb"; python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file ${LOC}/finalscale-lumi300/debug.root,${LOC}/finalscale-lumi3000/debug.root --extra_contour_title "300 fb^{-1},3000 fb^{-1}" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2
+
+python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "Scenario 1, Scenario 2" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp_lumi3000
+
 
 # And now testing MSSMvsSM:
 
