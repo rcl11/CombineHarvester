@@ -102,8 +102,10 @@ class AsymptoticGrid(CombineToolBase):
     zvals_m2s = []; zvals_m1s = []; zvals_exp = []; zvals_p1s = []; zvals_p2s = []; zvals_obs = []
     for key,val in file_dict.iteritems():
       for filename in val:
+        if not plot.TFileIsGood(filename):
+            print '>> Problem reading file %s, skipping' % filename
+            continue
         fin = ROOT.TFile(filename)
-        if fin.IsZombie(): continue
         tree = fin.Get('limit')
         for evt in tree:
           if isnan(evt.limit):
