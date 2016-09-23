@@ -264,7 +264,7 @@ legend_ref.Draw()
 legend.Draw()
 
 
-plot.DrawCMSLogo(pads[0], 'CMS', args.cms_sub, 11, 0.045, 0.035, 1.2, '', 0.8)
+plot.DrawCMSLogo(pads[0], 'CMS', args.cms_sub, 0, 0.15, 0.035, 1.2, '', 0.8)
 plot.DrawTitle(pads[0], args.title_right, 3)
 plot.DrawTitle(pads[0], args.title_left, 1)
 
