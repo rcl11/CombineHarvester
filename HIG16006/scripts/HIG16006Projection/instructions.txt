@@ -208,14 +208,15 @@ python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
 'mssm_projection_ECFA_shapes_rebin0p8_lumi3000_finalscale_ggH_cmb.json:exp0:Title="3000 bound"' \
 --logy --logx --auto-style  --output="AN_ECFA_shapes_rebin0p8_SystCompare_ggH" --show exp --process="gg#phi"
 
+# Public plots
 for PROC in gg bb; do python scripts/plotMSSMLimits.py --cms-sub="Projection" \
 --pad-style 'Grid=(1,1)' \
-ECFA_rebin0p8_lumi2.3_nominal_${PROC}H_cmb.json \
-ECFA_rebin0p8_lumi300_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
-ECFA_rebin0p8_lumi300_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
-ECFA_rebin0p8_lumi3000_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
-ECFA_rebin0p8_lumi3000_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
---logy --logx --auto-style  --output="ECFA_rebin0p8_compare_${PROC}H" --show exp --process="${PROC}#phi"; done
+mssm_310516_freezing_${PROC}H_cmb.json \
+ECFA_rebin0p8_lumi300_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=4' \
+ECFA_rebin0p8_lumi300_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=3,LineColor=4' \
+ECFA_rebin0p8_lumi3000_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=2' \
+ECFA_rebin0p8_lumi3000_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=3,LineColor=2' \
+--logy --logx --auto-style  --output="ECFA_rebin0p8_compare_${PROC}H" --show exp --process="${PROC}#phi" --title-right "MSSM #phi#rightarrow#tau#tau"; done
 
 ECFA_rebin0p8_lumi3000_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
 ECFA_rebin0p8_lumi300_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
@@ -234,7 +235,10 @@ for LUMI in 300 3000; do for MODEL in bbbscale allscale finalnothscale finalscal
 
 LOC="output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb"; python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file ${LOC}/finalscale-lumi300/debug.root,${LOC}/finalscale-lumi3000/debug.root --extra_contour_title "300 fb^{-1},3000 fb^{-1}" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2
 
-python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "Scenario 1, Scenario 2" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp_lumi3000
+# Public plots
+python scripts/plotMSSMLimitGrid.py --scenario-label="m_{h}^{mod+} scenario" HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file shapes/8TeVObs/8TeV_mhmodp_expected_contours.root,limits-bbbscale-lumi300-alt.root,limits-finalscale-lumi300.root,limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "7+8 TeV expected (HIG-14-029), Scenario 1 (300 fb^{-1}), Scenario 2 (300 fb^{-1}), Scenario 1 (3000 fb^{-1}), Scenario 2 (3000 fb^{-1})" --extra_contour_style=1,2,3,2,3 --extra_contour_color=4,4,4,2,2 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp --cms-sub Projection --title-right 'MSSM #phi#rightarrow#tau#tau'
+
+python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "Scenario 1, Scenario 2" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp_lumi3000 --cms-sub Projection --title-right 'HIG-16-006 2.3 fb^{-1} #rightarrow 3000 fb^{-1}'
 
 
 # And now testing MSSMvsSM:

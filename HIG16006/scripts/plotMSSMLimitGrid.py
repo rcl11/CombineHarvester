@@ -74,6 +74,9 @@ parser.add_argument(
     '--extra_contour_style', default="", help="""Line style for plotting
     extra contours""")
 parser.add_argument(
+    '--extra_contour_color', default="", help="""Line style for plotting
+    extra contours""")
+parser.add_argument(
     '--model_file', default=None, help="""Model file for drawing mh
     exclusion""")
 parser.add_argument(
@@ -159,7 +162,7 @@ else :
 # Setup the canvas: we'll use a two pad split, with a small top pad to contain
 # the CMS logo and the legend
 canv = ROOT.TCanvas(args.output, args.output)
-pads = plot.TwoPadSplit(0.8, 0, 0)
+pads = plot.TwoPadSplit(0.77, 0, 0)
 pads[1].cd()
 h_axis.GetXaxis().SetTitle(args.x_title)
 h_axis.GetYaxis().SetTitle(args.y_title)
@@ -240,7 +243,7 @@ if 'exp0' in contours:
             plot.Set(gr, LineColor=ROOT.kBlack, LineStyle=2)
             gr.Draw('LSAME')
         else:
-            plot.Set(gr, LineStyle=2, FillStyle=1001,
+            plot.Set(gr, LineStyle=1, FillStyle=1001,
                      FillColor=plot.CreateTransparentColor(
                         ROOT.kPink + 6, 0.5))
             gr.Draw(fillstyle)
@@ -265,14 +268,17 @@ if mh122_contours is not None:
         gr.Draw('LSAME')
 
 if extra_contours is not None:
-    if args.extra_contour_style is not None: 
+    if args.extra_contour_style is not None:
         contour_styles = args.extra_contour_style.split(',')
+    if args.extra_contour_color is not None:
+        contour_colors = args.extra_contour_color.split(',')
     print extra_contours
-    for i in range(0,len(extra_contours)):
+    for i in range(1,len(extra_contours)):
         for gr in extra_contours[i]:
-            plot.Set(gr,LineWidth=2,LineColor=ROOT.kBlue,LineStyle=int(contour_styles[i]))
+            plot.Set(gr,LineColor=int(contour_colors[i]))
+            plot.Set(gr,LineWidth=2,LineStyle=int(contour_styles[i]))
             gr.Draw('LSAME')
-   
+
 
 # We just want the top pad to look like a box, so set all the text and tick
 # sizes to zero
@@ -283,26 +289,40 @@ plot.Set(h_top.GetYaxis(), LabelSize=0, TitleSize=0, TickLength=0)
 h_top.Draw()
 
 # Draw the legend in the top TPad
-legend = plot.PositionedLegend(0.4, 0.11, 3, 0.015)
-plot.Set(legend, NColumns=2, Header='#bf{%.0f%% CL Excluded:}' % (args.CL*100.))
-if 'obs' in contours:
-    legend.AddEntry(contours['obs'][0], "Observed", "F")
-if 'exp-1' in contours and 'exp+1' in contours:
-    legend.AddEntry(contours['exp-1'][0], "#pm 1#sigma Expected", "F")
-if mh122_contours is not None and len(mh122_contours)>0:
-    legend.AddEntry(mh122_contours[0], "m_{h}^{MSSM} #neq 125 #pm 3 GeV","F")
-if 'exp0' in contours:
-    if 'obs' in contours:
-        legend.AddEntry(contours['exp0'][0], "Expected", "L")
-    else:
-        legend.AddEntry(contours['exp0'][0], "Expected", "F")
-if 'exp-2' in contours and 'exp+2' in contours:
-    legend.AddEntry(contours['exp-2'][0], "#pm 2#sigma Expected", "F")
-if extra_contours is not None:
-    if args.extra_contour_title is not None: 
-        contour_title = args.extra_contour_title.split(',')
-    for i in range(0,len(contour_title)): 
-        legend.AddEntry(extra_contours[i][0],contour_title[i],"L")
+legend = plot.PositionedLegend(0.56, 0.15, 3, 0.010)
+plot.Set(legend, NColumns=2, Header='#bf{%.0f%% CL Expected exclusion:                   Projections:}' % (args.CL*100.))
+# if 'obs' in contours:
+#     legend.AddEntry(contours['obs'][0], "Observed", "F")
+# if 'exp-1' in contours and 'exp+1' in contours:
+#     legend.AddEntry(contours['exp-1'][0], "#pm 1#sigma Expected", "F")
+# if mh122_contours is not None and len(mh122_contours)>0:
+#     legend.AddEntry(mh122_contours[0], "m_{h}^{MSSM} #neq 125 #pm 3 GeV","F")
+# if 'exp0' in contours:
+#     if 'obs' in contours:
+#         legend.AddEntry(contours['exp0'][0], "Expected", "L")
+#     else:
+#         legend.AddEntry(contours['exp0'][0], "Expected", "F")
+# if 'exp-2' in contours and 'exp+2' in contours:
+#     legend.AddEntry(contours['exp-2'][0], "#pm 2#sigma Expected", "F")
+# if extra_contours is not None:
+#     if args.extra_contour_title is not None: 
+#         contour_title = args.extra_contour_title.split(',')
+#     for i in range(0,len(contour_title)): 
+#         legend.AddEntry(extra_contours[i][0],contour_title[i],"L")
+contour_title = args.extra_contour_title.split(',')
+# legend.AddEntry(contours['exp0'][0], "13 TeV Expected (HIG-16-006)", "F")
+legend.AddEntry(contours['exp0'][0], "13 TeV Expected (HIG-16-006)", "F")
+legend.AddEntry(extra_contours[1][0],contour_title[1],"L")
+
+legend.AddEntry(contours['exp-1'][0], "   #pm 1#sigma Expected", "F")
+legend.AddEntry(extra_contours[2][0],contour_title[2],"L")
+
+legend.AddEntry(contours['exp-2'][0], "   #pm 2#sigma Expected", "F")
+legend.AddEntry(extra_contours[3][0],contour_title[3],"L")
+
+legend.AddEntry(None,'',"")
+legend.AddEntry(extra_contours[4][0],contour_title[4],"L")
+
 legend.Draw()
 
 # Draw logos and titles
@@ -320,7 +340,7 @@ pads[1].RedrawAxis()
 latex = ROOT.TLatex()
 latex.SetNDC()
 latex.SetTextSize(0.04)
-latex.DrawLatex(0.155, 0.75, args.scenario_label)
+latex.DrawLatex(0.155, 0.70, args.scenario_label)
 
 canv.Print('.pdf')
 canv.Print('.png')
