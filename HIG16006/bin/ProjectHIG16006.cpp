@@ -613,8 +613,9 @@ int main(int argc, char** argv) {
   cb.SetGroup("bbb", {"^CMS_htt_.*bin_[0-9]+$"});
   cb.SetGroup("scales_with_lumi", {"^CMS_.*$"});
 
-  // Electron and muon efficiencies don't scale (for now)
+  // Electron and muon scale by at most 1/2 to 1%
   cb.RemoveGroup("scales_with_lumi", {"^CMS_eff_[em]$"});
+  cb.SetGroup("eff_l", {"^CMS_eff_[em]$"});
 
   // Tau efficiencies do scale, but by 1/2 at most
   cb.RemoveGroup("scales_with_lumi", {"^CMS_eff_t_.*$"});
@@ -634,6 +635,9 @@ int main(int argc, char** argv) {
   // Or if we want to go back to scaling everything with lumi (except theory & lumi uncert)
   cb.SetGroup("all_scales_with_lumi", {"^CMS_.*$"});
   cb.RemoveGroup("all_scales_with_lumi", {"^CMS_htt_.*Xsec.*$"});
+
+  // Should scale to 1.5%, i.e. 1.5/2.7
+  cb.SetGroup("lumi", {"^lumi_13TeV$"});
 
 
   // cb.PrintAll();

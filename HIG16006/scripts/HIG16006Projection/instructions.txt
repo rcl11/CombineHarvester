@@ -177,10 +177,10 @@ The scaling functions can now be applied to NP groups, and there was a central r
 ### Workspace creation becomes
 
 # Current "complete" scaling expression
---X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'eff_t' '"expr::eff_t_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5' --X-nuisance-function '"^xs_.*"' '0.5'
+--X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'  --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_l' '"expr::eff_l_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'lumi' '"expr::lumisyst_scale(\"TMath::Max(1/sqrt(@0),0.56)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5' --X-nuisance-function '"^xs_.*"' '0.5'
 
 # Current "complete" scaling expression - but with unchanged theory
---X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'eff_t' '"expr::eff_t_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"'
+--X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'  --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_l' '"expr::eff_l_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'lumi' '"expr::lumisyst_scale(\"TMath::Max(1/sqrt(@0),0.56)\",lumiscale[1])"'
 
 # Or scaling everything with lumi apart from theory and the lumi uncert:
 --X-nuisance-group-function 'all_scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5'  --X-nuisance-function '"^xs_.*"' '0.5'
