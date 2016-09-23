@@ -177,7 +177,7 @@ The scaling functions can now be applied to NP groups, and there was a central r
 ### Workspace creation becomes
 
 # Current "complete" scaling expression
---X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'  --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_l' '"expr::eff_l_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'lumi' '"expr::lumisyst_scale(\"TMath::Max(1/sqrt(@0),0.56)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5' --X-nuisance-function '"^xs_.*"' '0.5'
+--X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'  --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_t' '"expr::eff_t_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_l' '"expr::eff_l_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'lumi' '"expr::lumisyst_scale(\"TMath::Max(1/sqrt(@0),0.56)\",lumiscale[1])"' --X-nuisance-group-function 'theory' '0.5' --X-nuisance-function '"^xs_.*"' '0.5'
 
 # Current "complete" scaling expression - but with unchanged theory
 --X-nuisance-group-function 'scales_with_lumi' '"expr::lumisyst(\"1/sqrt(@0)\",lumiscale[1])"'  --X-nuisance-group-function 'eff_b' '"expr::eff_b_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'eff_l' '"expr::eff_l_scale(\"TMath::Max(1/sqrt(@0),0.5)\",lumiscale[1])"' --X-nuisance-group-function 'lumi' '"expr::lumisyst_scale(\"TMath::Max(1/sqrt(@0),0.56)\",lumiscale[1])"'
@@ -199,7 +199,8 @@ combineTool.py -M T2W -o "mhmodp_allscale.root" -P CombineHarvester.CombinePdfs.
 for LUMI in 300 3000; do for MODEL in bbbscale finalscale; do for TYPE in ggH bbH; do combineTool.py -m "90,100,110,120,130,140,160,180,200,250,350,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2300,2600,2900,3200" -M Asymptotic --boundlist input/mssm_boundaries-100.json --setPhysicsModelParameters r_ggH=0,r_bbH=0,lumiscale=$(bc -l <<< "$LUMI / 2.3") --freezeNuisances lumiscale --redefineSignalPOIs r_${TYPE} -d output/mssm_projection_ECFA_shapes_rebin0p8/cmb/ws_${MODEL}.root --there -n "${MODEL}.${TYPE}.lumi${LUMI}" -t -1 --rAbsAcc 0 --rRelAcc 0.0005 --parallel 4; done; done; done
 
 
-for LUMI in 300 3000; do for MODEL in nosyst bbbscale finalscale; do for TYPE in ggH bbH; do combineTool.py -M CollectLimits output/mssm_projection_ECFA_shapes_rebin0p8/cmb/higgsCombine${MODEL}.${TYPE}.lumi${LUMI}.* --use-dirs -o "mssm_projection_ECFA_shapes_rebin0p8_lumi${LUMI}_${MODEL}_${TYPE}.json"; done; done; done
+for LUMI in 300 3000; do for MODEL in nosyst bbbscale finalscale; do for TYPE in ggH bbH; do combineTool.py -M CollectLimits output/mssm_projection_ECFA_shapes_rebin0p8/cmb/higgsCombine${MODEL}.${TYPE}.lumi${LUMI}.* --use-dirs -o "ECFA_rebin0p8_lumi${LUMI}_${MODEL}_${TYPE}.json"; done; done; done
+
 
 python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
 'mssm_projection_ECFA_shapes_rebin0p8_lumi300_allscale_ggH_cmb.json:exp0:Title="300 allscale"' \
@@ -209,7 +210,7 @@ python scripts/plotMSSMLimits.py --cms-sub="Preliminary" \
 --logy --logx --auto-style  --output="AN_ECFA_shapes_rebin0p8_SystCompare_ggH" --show exp --process="gg#phi"
 
 # Public plots
-for PROC in gg bb; do python scripts/plotMSSMLimits.py --cms-sub="Projection" \
+for PROC in gg bb; do python scripts/plotMSSMLimits.py --cms-sub="Preliminary Simulation" \
 --pad-style 'Grid=(1,1)' \
 mssm_310516_freezing_${PROC}H_cmb.json \
 ECFA_rebin0p8_lumi300_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=4' \
@@ -217,6 +218,18 @@ ECFA_rebin0p8_lumi300_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (300 
 ECFA_rebin0p8_lumi3000_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=2' \
 ECFA_rebin0p8_lumi3000_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=3,LineColor=2' \
 --logy --logx --auto-style  --output="ECFA_rebin0p8_compare_${PROC}H" --show exp --process="${PROC}#phi" --title-right "MSSM #phi#rightarrow#tau#tau"; done
+
+
+for PROC in gg bb; do python scripts/plotMSSMLimits.py --cms-sub="Preliminary Simulation" \
+--pad-style 'Grid=(1,1)' \
+mssm_310516_freezing_${PROC}H_cmb.json \
+ECFA_rebin0p8_lumi300_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=4' \
+ECFA_rebin0p8_lumi300_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=3,LineColor=4' \
+ECFA_rebin0p8_lumi300_statonly_${PROC}H_cmb.json:exp0:'Title="Stat. Only (300 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=7,LineColor=4' \
+ECFA_rebin0p8_lumi3000_bbbscale_${PROC}H_cmb.json:exp0:'Title="Scenario 1 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=2,LineColor=2' \
+ECFA_rebin0p8_lumi3000_finalscale_${PROC}H_cmb.json:exp0:'Title="Scenario 2 (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=3,LineColor=2' \
+ECFA_rebin0p8_lumi3000_statonly_${PROC}H_cmb.json:exp0:'Title="Stat. Only (3000 fb^{-1})",MarkerSize=0,LineWidth=3,LineStyle=7,LineColor=2' \
+--logy --logx --auto-style  --output="ECFA_rebin0p8_compare2_${PROC}H" --show exp --process="${PROC}#phi" --title-right "MSSM #phi#rightarrow#tau#tau"; done
 
 ECFA_rebin0p8_lumi3000_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (3000 fb^{-1})",MarkerSize=0,LineWidth=2' \
 ECFA_rebin0p8_lumi300_nosyst_${PROC}H_cmb.json:exp0:'Title="No Syst. (300 fb^{-1})",MarkerSize=0,LineWidth=2' \
@@ -229,6 +242,9 @@ for LUMI in 300 3000; do for MODEL in bbbscale allscale finalscale finalnothscal
 
 for LUMI in 300 3000; do for MODEL in bbbscale; do pushd ${MODEL}-lumi${LUMI}-alt; combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid_projections.json -d ../mhmodp_${MODEL}.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 20 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_${MODEL}-lumi${LUMI} --setPhysicsModelParameters lumiscale=$(bc -l <<< "$LUMI / 2.3") -t -1 --cminPreScan --cminPreFit 1; popd; done; done
 
+# Special one for statonly:
+for LUMI in 300 3000; do for MODEL in statonly; do pushd ${MODEL}-lumi${LUMI}; combineTool.py -M AsymptoticGrid ../../../../scripts/mssm_asymptotic_grid_projections.json -d ../mhmodp_${MODEL}.root --job-mode SGE --prefix-file naf --freezeNuisances lumiscale --merge 30 --sub-opts '-q default.q -l h_vmem="2G"' --task-name mssm_mhmodp_${MODEL}-lumi${LUMI} --setPhysicsModelParameters lumiscale=$(bc -l <<< "$LUMI / 2.3") -t -1 -S 0; popd; done; done
+
 
 
 for LUMI in 300 3000; do for MODEL in bbbscale allscale finalnothscale finalscale; do python scripts/plotMSSMLimitGrid.py output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb/${MODEL}-lumi${LUMI}/asymptotic_grid.root -o limits-${MODEL}-lumi${LUMI} -d limits-${MODEL}-lumi${LUMI}.root --contours exp0; done; done
@@ -236,7 +252,11 @@ for LUMI in 300 3000; do for MODEL in bbbscale allscale finalnothscale finalscal
 LOC="output/mssm_projection_ECFA_shapes_rebin0p8_MSSMvsSM_noh/cmb"; python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file ${LOC}/finalscale-lumi300/debug.root,${LOC}/finalscale-lumi3000/debug.root --extra_contour_title "300 fb^{-1},3000 fb^{-1}" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2
 
 # Public plots
-python scripts/plotMSSMLimitGrid.py --scenario-label="m_{h}^{mod+} scenario" HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file shapes/8TeVObs/8TeV_mhmodp_expected_contours.root,limits-bbbscale-lumi300-alt.root,limits-finalscale-lumi300.root,limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "7+8 TeV expected (HIG-14-029), Scenario 1 (300 fb^{-1}), Scenario 2 (300 fb^{-1}), Scenario 1 (3000 fb^{-1}), Scenario 2 (3000 fb^{-1})" --extra_contour_style=1,2,3,2,3 --extra_contour_color=4,4,4,2,2 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp --cms-sub Projection --title-right 'MSSM #phi#rightarrow#tau#tau'
+python scripts/plotMSSMLimitGridProjections.py --scenario-label="m_{h}^{mod+} scenario" HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file shapes/8TeVObs/8TeV_mhmodp_expected_contours.root,limits-bbbscale-lumi300-alt.root,limits-finalscale-lumi300.root,limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "7+8 TeV expected (HIG-14-029), Scenario 1 (300 fb^{-1}), Scenario 2 (300 fb^{-1}), Scenario 1 (3000 fb^{-1}), Scenario 2 (3000 fb^{-1})" --extra_contour_style=1,2,3,2,3 --extra_contour_color=4,4,4,2,2 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp --cms-sub "Preliminary Simulation" --title-right 'MSSM #phi#rightarrow#tau#tau'
+
+python scripts/plotMSSMLimitGridProjections.py --scenario-label="m_{h}^{mod+} scenario" HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file shapes/8TeVObs/8TeV_mhmodp_expected_contours.root,limits-bbbscale-lumi300-alt.root,limits-finalscale-lumi300.root,limits-statonly-lumi300.root,limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root,limits-statonly-lumi3000.root --extra_contour_title "7+8 TeV expected (HIG-14-029), Scenario 1 (300 fb^{-1}), Scenario 2 (300 fb^{-1}), Stat. Only (300 fb^{-1}), Scenario 1 (3000 fb^{-1}), Scenario 2 (3000 fb^{-1}), Stat. Only (3000 fb^{-1})" --extra_contour_style=1,2,3,7,2,3,7 --extra_contour_color=4,4,4,4,2,2,2 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp2 --cms-sub "Preliminary Simulation" --title-right 'MSSM #phi#rightarrow#tau#tau'
+
+
 
 python scripts/plotMSSMLimitGrid.py HIG16006-limits/HybridNewGridMSSM_mhmodp.root -d HIG16006-limits/debug.root --extra_contour_file limits-bbbscale-lumi3000-alt.root,limits-finalscale-lumi3000.root --extra_contour_title "Scenario 1, Scenario 2" --extra_contour_style=2,3 --contours exp-2,exp-1,exp0,exp+1,exp+2 -o scenario_comp_lumi3000 --cms-sub Projection --title-right 'HIG-16-006 2.3 fb^{-1} #rightarrow 3000 fb^{-1}'
 
