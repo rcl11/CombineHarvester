@@ -331,6 +331,7 @@ if len(extra_contours) >= 7:
     legend.AddEntry(extra_contours[3][0],contour_title[3],"L")
     legend.AddEntry(extra_contours[6][0],contour_title[6],"L")
 
+legend.SetTextSize(0.019)
 legend.Draw()
 
 # Draw logos and titles
